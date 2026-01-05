@@ -268,15 +268,17 @@ export default function AuthPage() {
           </div>
         </div>
 
-        <div className="relative hidden lg:block">
-          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(59,130,246,0.35),transparent_45%)]" />
-          <img
-            src="https://images.unsplash.com/photo-1677446501636-9f202255d944?auto=format&fit=crop&w=1600&q=80"
-            alt="Velocy reference background"
-            className="h-full w-full object-cover"
-            loading="lazy"
-          />
+        <div className="relative hidden lg:flex items-center justify-center p-10">
+          <div className="relative w-full max-w-4xl max-h-[720px] aspect-[5/4] overflow-hidden rounded-3xl border border-white/10 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(59,130,246,0.35),transparent_45%)]" />
+            <img
+              src="https://images.unsplash.com/photo-1677446501636-9f202255d944?auto=format&fit=crop&w=1600&q=80"
+              alt="Velocy reference background"
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
+          </div>
         </div>
       </div>
     </div>
