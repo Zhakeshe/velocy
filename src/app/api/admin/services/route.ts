@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
-import { addCatalogItem, deleteCatalogItem, listCatalog } from "@/lib/server/mock-db";
+
+import { addCatalogItem, deleteCatalogItem, listCatalog } from "@/lib/server/database";
 
 export async function GET() {
-  return NextResponse.json({ items: listCatalog() });
+  const items = await listCatalog();
+  return NextResponse.json({ items });
 }
 
 export async function POST(request: Request) {
@@ -12,7 +14,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
 
-  const created = addCatalogItem({ name, category, owner });
+  const created = await addCatalogItem({ name, category, owner });
   return NextResponse.json(created, { status: 201 });
 }
 
@@ -21,6 +23,6 @@ export async function DELETE(request: Request) {
   const { id } = body ?? {};
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
-  const removed = deleteCatalogItem(id);
+  const removed = await deleteCatalogItem(id);
   return NextResponse.json({ removed });
 }

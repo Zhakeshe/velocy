@@ -1,0 +1,145 @@
+import crypto from "crypto";
+
+import bcrypt from "bcrypt";
+import { desc, eq } from "drizzle-orm";
+
+import { db, ensureMigrations } from "@/lib/db/client";
+import { catalogItems, userServices, users } from "@/lib/db/schema";
+import type { UserService } from "@/lib/types/auth";
+
+function withId(prefix: string) {
+  return `${prefix}-${crypto.randomUUID()}`;
+}
+
+function toUserServices(rows: typeof userServices.$inferSelect[]): UserService[] {
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    area: row.area,
+    plan: row.plan,
+    price: row.price,
+    billing: row.billing,
+    nextInvoice: row.nextInvoice,
+    status: row.status as UserService["status"],
+  }));
+}
+
+export async function fetchUserByEmail(email: string) {
+  await ensureMigrations();
+  const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  return user ?? null;
+}
+
+export async function fetchUserWithServices(email: string) {
+  const user = await fetchUserByEmail(email);
+  if (!user) return null;
+
+  const services = await db
+    .select()
+    .from(userServices)
+    .where(eq(userServices.userId, user.id))
+    .orderBy(desc(userServices.createdAt));
+
+  return { user, services: toUserServices(services) };
+}
+
+export async function registerUser(payload: { name: string; email: string; password: string }) {
+  await ensureMigrations();
+  const { name, email, password } = payload;
+  const [existing] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  if (existing) {
+    throw new Error("Пользователь уже зарегистрирован");
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  const [created] = await db
+    .insert(users)
+    .values({ name, email, passwordHash })
+    .returning({ id: users.id, name: users.name, email: users.email, createdAt: users.createdAt });
+
+  const demoServices: Omit<typeof userServices.$inferInsert, "userId">[] = [
+    {
+      id: withId("svc"),
+      name: "Client Desk",
+      area: "Подписки",
+      plan: "Workspace Pro",
+      price: "15 000 ₸ / мес.",
+      billing: "3 мес. / 42 600 ₸",
+      nextInvoice: "с 22 July 2025",
+      status: "active",
+    },
+    {
+      id: withId("svc"),
+      name: "Analytics Hub",
+      area: "Автоматизации",
+      plan: "Data Flow",
+      price: "4 000 ₸ / мес.",
+      billing: "12 мес. / 48 000 ₸",
+      nextInvoice: "с 3 July 2025",
+      status: "active",
+    },
+  ];
+
+  if (demoServices.length) {
+    await db
+      .insert(userServices)
+      .values(demoServices.map((svc) => ({ ...svc, userId: created.id })))
+      .returning();
+  }
+
+  const services = await db
+    .select()
+    .from(userServices)
+    .where(eq(userServices.userId, created.id))
+    .orderBy(desc(userServices.createdAt));
+
+  return { user: created, services: toUserServices(services) };
+}
+
+export async function verifyLogin(email: string, password: string) {
+  await ensureMigrations();
+  const [existing] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  if (!existing) {
+    throw new Error("Пользователь не найден");
+  }
+
+  const ok = await bcrypt.compare(password, existing.passwordHash);
+  if (!ok) {
+    throw new Error("Неверный пароль");
+  }
+
+  const services = await db
+    .select()
+    .from(userServices)
+    .where(eq(userServices.userId, existing.id))
+    .orderBy(desc(userServices.createdAt));
+
+  return { user: existing, services: toUserServices(services) };
+}
+
+export async function listCatalog() {
+  await ensureMigrations();
+  const items = await db.select().from(catalogItems).orderBy(desc(catalogItems.createdAt));
+  return items;
+}
+
+export async function addCatalogItem(payload: { name: string; category: string; owner: string }) {
+  await ensureMigrations();
+  const [item] = await db
+    .insert(catalogItems)
+    .values({
+      id: withId("srv"),
+      name: payload.name,
+      category: payload.category,
+      owner: payload.owner,
+    })
+    .returning();
+
+  return item;
+}
+
+export async function deleteCatalogItem(id: string) {
+  await ensureMigrations();
+  const deleted = await db.delete(catalogItems).where(eq(catalogItems.id, id));
+  return Boolean(deleted.rowsAffected ?? deleted.changes ?? 0);
+}
