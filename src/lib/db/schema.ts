@@ -15,6 +15,14 @@ export const catalogItems = sqliteTable("catalog_items", {
   name: text("name").notNull(),
   category: text("category").notNull(),
   owner: text("owner").notNull(),
+  price: integer("price").notNull().default(0),
+  currency: text("currency").notNull().default("₸"),
+  region: text("region").notNull().default("KZ"),
+  cpu: text("cpu").notNull().default(""),
+  ram: text("ram").notNull().default(""),
+  storage: text("storage").notNull().default(""),
+  bandwidth: text("bandwidth").notNull().default(""),
+  ddos: text("ddos").notNull().default(""),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
@@ -23,6 +31,7 @@ export const userServices = sqliteTable("user_services", {
   userId: integer("user_id")
     .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
+  catalogId: text("catalog_id").notNull().default("custom"),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   name: text("name").notNull(),
   area: text("area").notNull(),

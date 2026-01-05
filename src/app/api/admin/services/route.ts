@@ -9,12 +9,24 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { name, category, owner } = body ?? {};
-  if (!name || !category || !owner) {
+  const { name, category, owner, price, currency, region, cpu, ram, storage, bandwidth, ddos } = body ?? {};
+  if (!name || !category || !owner || price === undefined || !currency || !region) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
 
-  const created = await addCatalogItem({ name, category, owner });
+  const created = await addCatalogItem({
+    name,
+    category,
+    owner,
+    price: Number(price) || 0,
+    currency,
+    region,
+    cpu: cpu ?? "",
+    ram: ram ?? "",
+    storage: storage ?? "",
+    bandwidth: bandwidth ?? "",
+    ddos: ddos ?? "",
+  });
   return NextResponse.json(created, { status: 201 });
 }
 
