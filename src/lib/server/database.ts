@@ -57,36 +57,6 @@ export async function registerUser(payload: { name: string; email: string; passw
     .values({ name, email, passwordHash })
     .returning({ id: users.id, name: users.name, email: users.email, createdAt: users.createdAt });
 
-  const demoServices: Omit<typeof userServices.$inferInsert, "userId">[] = [
-    {
-      id: withId("svc"),
-      name: "Client Desk",
-      area: "Подписки",
-      plan: "Workspace Pro",
-      price: "15 000 ₸ / мес.",
-      billing: "3 мес. / 42 600 ₸",
-      nextInvoice: "с 22 July 2025",
-      status: "active",
-    },
-    {
-      id: withId("svc"),
-      name: "Analytics Hub",
-      area: "Автоматизации",
-      plan: "Data Flow",
-      price: "4 000 ₸ / мес.",
-      billing: "12 мес. / 48 000 ₸",
-      nextInvoice: "с 3 July 2025",
-      status: "active",
-    },
-  ];
-
-  if (demoServices.length) {
-    await db
-      .insert(userServices)
-      .values(demoServices.map((svc) => ({ ...svc, userId: created.id })))
-      .returning();
-  }
-
   const services = await db
     .select()
     .from(userServices)

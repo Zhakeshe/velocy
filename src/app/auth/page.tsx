@@ -22,6 +22,9 @@ export default function AuthPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const telegramLoginUrl =
+    process.env.NEXT_PUBLIC_TELEGRAM_LOGIN_URL?.trim() || "https://t.me/VelocyLLC";
+
   const router = useRouter();
   const { user, isLoading, login, register, logout } = useAuth();
 
@@ -67,6 +70,11 @@ export default function AuthPage() {
     setEmail("");
     setName("");
     setAcceptedTerms(false);
+  };
+
+  const handleTelegramLogin = () => {
+    if (typeof window === "undefined") return;
+    window.open(telegramLoginUrl, "_blank", "noopener,noreferrer");
   };
 
   useEffect(() => {
@@ -217,6 +225,7 @@ export default function AuthPage() {
             <div className="space-y-3">
               <button
                 type="button"
+                onClick={handleTelegramLogin}
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#2AABEE] text-white font-semibold border border-white/15 shadow-[0_15px_60px_rgba(42,171,238,0.35)] hover:brightness-110 transition"
               >
                 <span className="inline-flex items-center justify-center h-8 w-8 rounded-lg bg-white/15 border border-white/20">
