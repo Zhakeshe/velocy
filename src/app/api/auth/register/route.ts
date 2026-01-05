@@ -11,17 +11,7 @@ export async function POST(request: Request) {
     }
 
     const result = await registerUser({ name, email, password });
-    return NextResponse.json(
-      {
-        user: {
-          name: result.user.name,
-          email: result.user.email,
-          balance: result.user.balance,
-          services: result.services,
-        },
-      },
-      { status: 201 },
-    );
+    return NextResponse.json({ user: result }, { status: 201 });
   } catch (error: any) {
     return NextResponse.json({ error: error?.message ?? "Registration failed" }, { status: 400 });
   }

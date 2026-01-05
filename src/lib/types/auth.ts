@@ -15,4 +15,12 @@ export type UserService = {
   activatedAt: string;
 };
 
-export type AuthUser = { name: string; email: string; balance: number; services: UserService[] };
+export type AuthUser = {
+  name: string;
+  email: string;
+  balance: number;
+  notifyEmail: boolean;
+  notifyBrowser: boolean;
+  twoFactorEnabled: boolean;
+  services: UserService[];
+};

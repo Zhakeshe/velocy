@@ -2,7 +2,7 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-import type { AuthUser, UserService } from "@/lib/types/auth";
+import type { AuthUser } from "@/lib/types/auth";
 
 type AuthContextValue = {
   user: AuthUser | null;
@@ -11,6 +11,15 @@ type AuthContextValue = {
   register: (payload: { name: string; email: string; password: string }) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
+  updateProfile: (payload: {
+    name?: string;
+    newEmail?: string;
+    currentPassword?: string;
+    newPassword?: string;
+    notifyEmail?: boolean;
+    notifyBrowser?: boolean;
+    twoFactorEnabled?: boolean;
+  }) => Promise<AuthUser | null>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -106,9 +115,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (nextUser) setUser(nextUser);
   }, [user?.email]);
 
+  const updateProfile = useCallback(
+    async (payload: {
+      name?: string;
+      newEmail?: string;
+      currentPassword?: string;
+      newPassword?: string;
+      notifyEmail?: boolean;
+      notifyBrowser?: boolean;
+      twoFactorEnabled?: boolean;
+    }) => {
+      if (!user?.email) return null;
+
+      const res = await fetch("/api/account/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentEmail: user.email, ...payload }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error ?? "Не удалось обновить данные");
+      }
+
+      const nextUser = data.user as AuthUser;
+      setUser(nextUser);
+
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(STORAGE_KEYS.sessionEmail, nextUser.email);
+      }
+
+      return nextUser;
+    },
+    [user?.email],
+  );
+
   const value = useMemo(
-    () => ({ user, isLoading, login, register, logout, refreshUser }),
-    [isLoading, login, logout, refreshUser, register, user],
+    () => ({ user, isLoading, login, register, logout, refreshUser, updateProfile }),
+    [isLoading, login, logout, refreshUser, register, updateProfile, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

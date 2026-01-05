@@ -5,7 +5,7 @@ import { desc, eq } from "drizzle-orm";
 
 import { db, ensureMigrations } from "@/lib/db/client";
 import { catalogItems, userServices, users } from "@/lib/db/schema";
-import type { UserService } from "@/lib/types/auth";
+import type { AuthUser, UserService } from "@/lib/types/auth";
 
 function withId(prefix: string) {
   return `${prefix}-${crypto.randomUUID()}`;
@@ -22,6 +22,18 @@ function generateHostname(name: string) {
     .replace(/^-+|-+$/g, "")
     .slice(0, 12);
   return `${base || "vps"}.${crypto.randomUUID().slice(0, 6)}.kz`;
+}
+
+function toAuthUser(userRow: typeof users.$inferSelect, services: UserService[] = []): AuthUser {
+  return {
+    name: userRow.name,
+    email: userRow.email,
+    balance: userRow.balance,
+    notifyEmail: Boolean(userRow.notifyEmail),
+    notifyBrowser: Boolean(userRow.notifyBrowser),
+    twoFactorEnabled: Boolean(userRow.twoFactorEnabled),
+    services,
+  };
 }
 
 function toUserServices(rows: typeof userServices.$inferSelect[]): UserService[] {
@@ -59,7 +71,8 @@ export async function fetchUserWithServices(email: string) {
     .where(eq(userServices.userId, user.id))
     .orderBy(desc(userServices.createdAt));
 
-  return { user, services: toUserServices(services) };
+  const mappedServices = toUserServices(services);
+  return toAuthUser(user, mappedServices);
 }
 
 export async function registerUser(payload: { name: string; email: string; password: string }) {
@@ -74,13 +87,7 @@ export async function registerUser(payload: { name: string; email: string; passw
   const [created] = await db
     .insert(users)
     .values({ name, email, passwordHash })
-    .returning({
-      id: users.id,
-      name: users.name,
-      email: users.email,
-      balance: users.balance,
-      createdAt: users.createdAt,
-    });
+    .returning();
 
   const services = await db
     .select()
@@ -88,7 +95,7 @@ export async function registerUser(payload: { name: string; email: string; passw
     .where(eq(userServices.userId, created.id))
     .orderBy(desc(userServices.createdAt));
 
-  return { user: created, services: toUserServices(services) };
+  return toAuthUser(created, toUserServices(services));
 }
 
 export async function verifyLogin(email: string, password: string) {
@@ -109,7 +116,7 @@ export async function verifyLogin(email: string, password: string) {
     .where(eq(userServices.userId, existing.id))
     .orderBy(desc(userServices.createdAt));
 
-  return { user: existing, services: toUserServices(services) };
+  return toAuthUser(existing, toUserServices(services));
 }
 
 export async function listCatalog() {
@@ -214,4 +221,78 @@ export async function createUserService(payload: {
   await db.update(users).set({ balance: user.balance - item.price }).where(eq(users.id, user.id));
 
   return toUserServices([service])[0];
+}
+
+export async function updateAccountSettings(payload: {
+  currentEmail: string;
+  name?: string;
+  newEmail?: string;
+  currentPassword?: string;
+  newPassword?: string;
+  notifyEmail?: boolean;
+  notifyBrowser?: boolean;
+  twoFactorEnabled?: boolean;
+}): Promise<AuthUser> {
+  await ensureMigrations();
+  const [existing] = await db.select().from(users).where(eq(users.email, payload.currentEmail)).limit(1);
+  if (!existing) {
+    throw new Error("Пользователь не найден");
+  }
+
+  if (payload.newEmail && payload.newEmail !== existing.email) {
+    const [conflict] = await db.select().from(users).where(eq(users.email, payload.newEmail)).limit(1);
+    if (conflict) {
+      throw new Error("Email уже используется другим аккаунтом");
+    }
+  }
+
+  if (payload.newPassword) {
+    if (!payload.currentPassword) {
+      throw new Error("Укажите текущий пароль для изменения");
+    }
+
+    const matches = await bcrypt.compare(payload.currentPassword, existing.passwordHash);
+    if (!matches) {
+      throw new Error("Текущий пароль неверен");
+    }
+  }
+
+  const updates: Partial<typeof users.$inferInsert> = {};
+
+  if (payload.name && payload.name !== existing.name) {
+    updates.name = payload.name;
+  }
+
+  if (payload.newEmail && payload.newEmail !== existing.email) {
+    updates.email = payload.newEmail;
+  }
+
+  if (payload.newPassword) {
+    updates.passwordHash = await bcrypt.hash(payload.newPassword, 10);
+  }
+
+  if (typeof payload.notifyEmail === "boolean") {
+    updates.notifyEmail = payload.notifyEmail ? 1 : 0;
+  }
+
+  if (typeof payload.notifyBrowser === "boolean") {
+    updates.notifyBrowser = payload.notifyBrowser ? 1 : 0;
+  }
+
+  if (typeof payload.twoFactorEnabled === "boolean") {
+    updates.twoFactorEnabled = payload.twoFactorEnabled ? 1 : 0;
+  }
+
+  if (Object.keys(updates).length > 0) {
+    await db.update(users).set(updates).where(eq(users.id, existing.id));
+  }
+
+  const [user] = await db.select().from(users).where(eq(users.id, existing.id));
+  const services = await db
+    .select()
+    .from(userServices)
+    .where(eq(userServices.userId, existing.id))
+    .orderBy(desc(userServices.createdAt));
+
+  return toAuthUser(user, toUserServices(services));
 }

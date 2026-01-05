@@ -11,14 +11,7 @@ export async function POST(request: Request) {
     }
 
     const result = await verifyLogin(email, password);
-    return NextResponse.json({
-      user: {
-        name: result.user.name,
-        email: result.user.email,
-        balance: result.user.balance,
-        services: result.services,
-      },
-    });
+    return NextResponse.json({ user: result });
   } catch (error: any) {
     return NextResponse.json({ error: error?.message ?? "Login failed" }, { status: 400 });
   }
