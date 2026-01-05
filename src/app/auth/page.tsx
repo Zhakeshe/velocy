@@ -69,9 +69,10 @@ export default function AuthPage() {
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
       <div className="absolute left-1/2 -translate-x-1/2 -top-24 h-[520px] w-[520px] bg-blue-600/30 blur-[130px] rounded-full" />
       <div className="absolute -left-24 bottom-10 h-[320px] w-[320px] bg-blue-500/20 blur-[130px] rounded-full" />
+      <div className="absolute right-[-120px] top-10 h-[420px] w-[420px] bg-blue-400/25 blur-[130px] rounded-full" />
 
-      <div className="relative z-10 grid lg:grid-cols-[420px_1fr] min-h-screen">
-        <div className="bg-black/80 border-r border-white/10 px-8 md:px-12 py-10 flex flex-col gap-10">
+      <div className="relative z-10 grid lg:grid-cols-[440px_1fr] min-h-screen">
+        <div className="bg-black/80 border-r border-white/10 px-8 md:px-12 py-10 flex flex-col gap-10 backdrop-blur-xl">
           <div className="flex items-center gap-3 text-white/80">
             <div className="size-10 rounded-full bg-white/10 flex items-center justify-center border border-white/10">V</div>
             <div>
@@ -211,17 +212,34 @@ export default function AuthPage() {
               {mode === "login" ? <LogIn className="size-4" /> : <ShieldCheck className="size-4" />}
             </button>
 
-            <div className="grid grid-cols-[auto_1fr] gap-3 text-sm text-white/60 items-center">
-              <input type="radio" defaultChecked className="accent-emerald-400" />
-              <span className="flex items-center justify-between">
-                Telegram
-                <span className="text-xs text-white/40">or use</span>
-              </span>
-              <div className="col-span-2 grid grid-cols-2 gap-3">
-                <button type="button" className="w-full py-3 rounded-xl bg-white/10 border border-white/15 hover:border-white/40">
+            <div className="space-y-3">
+              <button
+                type="button"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#2AABEE] text-white font-semibold border border-white/15 shadow-[0_15px_60px_rgba(42,171,238,0.35)] hover:brightness-110 transition"
+              >
+                <span className="inline-flex items-center justify-center h-8 w-8 rounded-lg bg-white/15 border border-white/20">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="size-5"
+                  >
+                    <path d="M22.94 3.15a1.01 1.01 0 0 0-1.08-.15L2.6 11.54a.96.96 0 0 0-.6.92c.03.39.31.72.7.81l4.86 1.2 1.95 6.11c.11.33.39.56.73.61h.11a.94.94 0 0 0 .67-.28l3.05-3.1 4.62 3.31c.17.12.36.18.55.18.14 0 .28-.03.41-.09a.95.95 0 0 0 .57-.69l3-15.65c.07-.34-.08-.69-.36-.9Zm-4.57 3.1-9.17 8.73a.6.6 0 0 0-.17.57l.62 2.77-.98-3.07 9.7-8.02-12.15 6.7 14.28-7.5-.13.65Z" />
+                  </svg>
+                </span>
+                Войти через Telegram
+              </button>
+              <div className="grid grid-cols-2 gap-3 text-sm text-white/80">
+                <button
+                  type="button"
+                  className="w-full py-3 rounded-xl bg-white/10 border border-white/15 hover:border-white/40"
+                >
                   Google
                 </button>
-                <button type="button" className="w-full py-3 rounded-xl bg-white/10 border border-white/15 hover:border-white/40">
+                <button
+                  type="button"
+                  className="w-full py-3 rounded-xl bg-white/10 border border-white/15 hover:border-white/40"
+                >
                   Discord
                 </button>
               </div>
@@ -249,11 +267,11 @@ export default function AuthPage() {
         </div>
 
         <div className="relative hidden lg:block">
-          <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/20 to-transparent" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.1),transparent_30%)]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(59,130,246,0.35),transparent_45%)]" />
           <img
-            src="https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=1600&q=80"
-            alt="Abstract green waves"
+            src="https://avatars.mds.yandex.net/i?id=2111774720f28a10537d15511a991bb7e12e6e3e-8497411-images-thumbs&n=13"
+            alt="Velocy reference background"
             className="h-full w-full object-cover"
             loading="lazy"
           />
