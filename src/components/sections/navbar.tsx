@@ -1,7 +1,14 @@
-import React from 'react';
-import { User, Home, HelpCircle, CreditCard, MessageCircle } from 'lucide-react';
+"use client";
+
+import React from "react";
+import { User, Home, HelpCircle, CreditCard, MessageCircle, LogOut } from "lucide-react";
+import { useAuth } from "@/lib/hooks/auth-context";
 
 const Navbar = () => {
+  const { user, logout } = useAuth();
+
+  const ctaLabel = user ? user.name : "Авторизация";
+
   return (
     <header className="w-full px-4 lg:px-16 py-6 fixed top-0 z-50 bg-black/40 backdrop-blur-xl border-b border-white/5">
       <div className="flex items-center justify-between mx-auto max-w-[100rem]">
@@ -40,13 +47,22 @@ const Navbar = () => {
         </nav>
 
         {}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          {user ? (
+            <button
+              onClick={logout}
+              className="hidden sm:flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-full bg-white/5 border border-white/10 text-white/70 hover:text-white"
+            >
+              <LogOut className="size-4" />
+              Выйти
+            </button>
+          ) : null}
           <a
-            href="/dashboard"
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white hover:text-white/80 transition-colors"
+            href="/auth"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white hover:text-white/80 transition-colors rounded-full bg-white/5 border border-white/10"
           >
             <User className="size-4" />
-            Личный кабинет
+            {ctaLabel}
           </a>
         </div>
       </div>
