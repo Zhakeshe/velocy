@@ -21,38 +21,40 @@ import {
 import Navbar from "@/components/sections/navbar";
 import { useAuth } from "@/lib/hooks/auth-context";
 import { usePathname, useRouter } from "next/navigation";
+import { useLocale } from "@/lib/hooks/locale-context";
 
-const navSections = [
+const baseNavSections = [
   {
     title: "Общее",
     links: [
-      { icon: Home, label: "Домашняя страница", href: "/dashboard" },
-      { icon: Bell, label: "Уведомления", href: "/dashboard/notifications" },
-      { icon: Wallet2, label: "Пополнение баланс", href: "/dashboard/balance" },
-      { icon: ShoppingBag, label: "Приобрести услуги", href: "/dashboard/purchase" },
+      { icon: Home, labelKey: "nav.home", href: "/dashboard" },
+      { icon: Bell, labelKey: "nav.notifications", href: "/dashboard/notifications" },
+      { icon: Wallet2, labelKey: "nav.balance", href: "/dashboard/balance" },
+      { icon: ShoppingBag, labelKey: "nav.purchase", href: "/dashboard/purchase" },
     ],
   },
   {
-    title: "Услуги",
+    title: "Продукты",
     links: [
-      { icon: LayoutDashboard, label: "Виртуальные серверы", href: "/dashboard/services/virtual" },
-      { icon: Gamepad2, label: "Игровые сервера", href: "/dashboard/services/games" },
-      { icon: ShieldCheck, label: "Выделенные серверы", href: "/dashboard/services/dedicated" },
+      { icon: LayoutDashboard, labelKey: "nav.products", href: "/dashboard/services/virtual" },
+      { icon: Gamepad2, labelKey: "nav.automation", href: "/dashboard/services/games" },
+      { icon: ShieldCheck, labelKey: "nav.extensions", href: "/dashboard/services/dedicated" },
     ],
   },
   {
     title: "Поддержка",
     links: [
-      { icon: MessageSquare, label: "Создать обращение", href: "/dashboard/support/create" },
-      { icon: LifeBuoy, label: "Активные обращения", href: "/dashboard/support/active" },
+      { icon: MessageSquare, labelKey: "nav.supportCreate", href: "/dashboard/support/create" },
+      { icon: LifeBuoy, labelKey: "nav.supportActive", href: "/dashboard/support/active" },
     ],
   },
   {
     title: "Аккаунт",
     links: [
-      { icon: Settings, label: "Настройки", href: "/dashboard/account/settings" },
-      { icon: CreditCard, label: "Счета", href: "/dashboard/account/invoices" },
-      { icon: Sparkles, label: "Реферальная система", href: "/dashboard/referrals" },
+      { icon: Settings, labelKey: "nav.settings", href: "/dashboard/account/settings" },
+      { icon: CreditCard, labelKey: "nav.invoices", href: "/dashboard/account/invoices" },
+      { icon: Sparkles, labelKey: "nav.referrals", href: "/dashboard/referrals" },
+      { icon: ShieldCheck, labelKey: "nav.admin", href: "/dashboard/admin" },
     ],
   },
 ];
@@ -61,6 +63,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const router = useRouter();
   const { user, isLoading, logout } = useAuth();
+  const { t } = useLocale();
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -75,6 +78,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   if (!user) return null;
+
+  const navSections = baseNavSections.map((section) => ({
+    ...section,
+    links: section.links.map((link) => ({ ...link, label: t(link.labelKey) as string })),
+  }));
 
   return (
     <div className="min-h-screen bg-[#030304] text-white relative overflow-hidden">
@@ -142,16 +150,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 sm:px-4">
             <div className="flex items-center gap-2 text-sm text-white/60">
               <Sparkles className="size-4 text-emerald-300" />
-              <span>Добро пожаловать обратно</span>
+              <span>{t("hero.title") as string}</span>
             </div>
             <div className="flex items-center gap-2 text-xs sm:text-sm text-white/60">
-              <button className={`rounded-lg px-3 py-1 ${pathname === "/dashboard" ? "bg-white/10 text-white" : "hover:bg-white/5"}`} onClick={() => router.push("/dashboard")}>Главная</button>
-              <button className={`rounded-lg px-3 py-1 ${pathname.startsWith("/dashboard/balance") ? "bg-white/10 text-white" : "hover:bg-white/5"}`} onClick={() => router.push("/dashboard/balance")}>Финансы</button>
-              <button className="rounded-lg px-3 py-1 hover:bg-white/5">Вики</button>
+              <button
+                className={`rounded-lg px-3 py-1 ${pathname === "/dashboard" ? "bg-white/10 text-white" : "hover:bg-white/5"}`}
+                onClick={() => router.push("/dashboard")}
+              >
+                {t("quick.home") as string}
+              </button>
+              <button
+                className={`rounded-lg px-3 py-1 ${pathname.startsWith("/dashboard/balance") ? "bg-white/10 text-white" : "hover:bg-white/5"}`}
+                onClick={() => router.push("/dashboard/balance")}
+              >
+                {t("quick.finance") as string}
+              </button>
+              <button
+                className={`rounded-lg px-3 py-1 ${pathname.startsWith("/dashboard/wiki") ? "bg-white/10 text-white" : "hover:bg-white/5"}`}
+                onClick={() => router.push("/dashboard/wiki")}
+              >
+                {t("quick.wiki") as string}
+              </button>
             </div>
           </div>
-
-          {children}
+          <div key={pathname} className="page-transition">
+            {children}
+          </div>
         </main>
       </div>
 

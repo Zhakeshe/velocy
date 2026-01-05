@@ -5,7 +5,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 export type UserService = {
   id: string;
   name: string;
-  domain: string;
+  area: string;
   plan: string;
   price: string;
   billing: string;
@@ -39,7 +39,14 @@ const STORAGE_KEYS = {
 };
 
 function withServicesHydrated(users: StoredUser[]): StoredUser[] {
-  return users.map((entry) => ({ ...entry, services: entry.services ?? [] }));
+  return users.map((entry) => ({
+    ...entry,
+    services: (entry.services ?? []).map((service, idx) => ({
+      area: service.area ?? "Подписки",
+      ...service,
+      id: service.id ?? `svc-${idx}`,
+    })),
+  }));
 }
 
 function readUsersFromStorage(): StoredUser[] {
@@ -67,21 +74,21 @@ function createDemoServices(ownerName: string): UserService[] {
   return [
     {
       id: "svc-1",
-      name: "britstor.kz",
-      domain: "britstor.kz",
-      plan: "VE | VDS CLOUD",
-      price: "15000 ₸ / мес.",
-      billing: "3 мес. / 42600 ₸",
+      name: "Client Desk",
+      area: "Подписки",
+      plan: "Workspace Pro",
+      price: "15 000 ₸ / мес.",
+      billing: "3 мес. / 42 600 ₸",
       nextInvoice: "с 22 July 2025",
       status: "active",
     },
     {
       id: "svc-2",
-      name: "eduhelp.tld",
-      domain: "eduhelp.tld",
-      plan: "VE | Shared",
-      price: "4000 ₸ / мес.",
-      billing: "12 мес. / 48000 ₸",
+      name: "Analytics Hub",
+      area: "Автоматизации",
+      plan: "Data Flow",
+      price: "4 000 ₸ / мес.",
+      billing: "12 мес. / 48 000 ₸",
       nextInvoice: "с 3 July 2025",
       status: "active",
     },

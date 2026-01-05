@@ -3,8 +3,8 @@ import "./globals.css";
 import Providers from "./providers";
 
 export const metadata: Metadata = {
-  title: "VE HOSTING",
-  description: "Прекрасное решение для вашего проекта",
+  title: "Velocy Workspace",
+  description: "Центр управления продуктами и клиентами",
 };
 
 export default function RootLayout({

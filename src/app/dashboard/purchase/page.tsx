@@ -1,55 +1,44 @@
 "use client";
 
 import React from "react";
-import { Cpu, Flame, Server, ShieldCheck, ToggleLeft } from "lucide-react";
-
-const categories = [
-  "Виртуальные серверы",
-  "Игровые сервера",
-  "HI-LOAD",
-  "STORAGE",
-  "AMD RYZEN",
-  "INTEL",
-  "LOW-COST",
-];
+import { PlugZap, ShieldCheck, Sparkles } from "lucide-react";
+import { useLocale } from "@/lib/hooks/locale-context";
 
 const offers = [
   {
-    id: "de-promo",
-    title: "DE-PROMO",
-    price: "190₽ / месяц",
-    cpu: "1 core",
-    ram: "1 GB RAM",
-    storage: "20 GB NVME",
-    location: "🇩🇪",
+    id: "starter-kit",
+    title: "Starter kit",
+    price: "15 000 ₸ / мес",
+    features: ["Онбординг команды", "Готовые шаблоны", "Стартовая аналитика"],
+    badge: "new",
   },
   {
-    id: "de-1",
-    title: "DE-1",
-    price: "340₽ / месяц",
-    cpu: "2 core",
-    ram: "2 GB RAM",
-    storage: "35 GB NVME",
-    location: "🇩🇪",
+    id: "growth-care",
+    title: "Growth care",
+    price: "29 000 ₸ / мес",
+    features: ["Чат с куратором", "Инциденты 24/7", "Дашборды KPI"],
+    badge: "popular",
   },
   {
-    id: "de-2",
-    title: "DE-2",
-    price: "560₽ / месяц",
-    cpu: "4 core",
-    ram: "4 GB RAM",
-    storage: "60 GB NVME",
-    location: "🇩🇪",
+    id: "automation-suite",
+    title: "Automation suite",
+    price: "45 000 ₸ / мес",
+    features: ["Интеграции", "Webhook + API", "Сценарии без кода"],
+    badge: "pro",
   },
 ];
 
 export default function PurchasePage() {
+  const { t } = useLocale();
+  const categories = t("purchase.filters") as string[];
+  const tags = t("purchase.tags") as string[];
+
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <p className="text-xs uppercase tracking-[0.2em] text-white/40">Приобретение услуги</p>
-        <h1 className="text-2xl font-semibold">Выберите нужный тариф для покупки</h1>
-        <p className="text-sm text-white/60">Фильтруйте по типу услуг и городам</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-white/40">{t("purchase.title") as string}</p>
+        <h1 className="text-2xl font-semibold">{t("purchase.subtitle") as string}</h1>
+        <p className="text-sm text-white/60">Подберите набор по вашим задачам</p>
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-white/5 p-4 flex flex-wrap items-center gap-3">
@@ -68,22 +57,12 @@ export default function PurchasePage() {
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-white/5 p-4 flex flex-wrap items-center gap-3">
-        <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm">
-          <Server className="size-4" />
-          VDS CLOUD
-        </div>
-        <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm">
-          <Flame className="size-4" />
-          Индивидуальные VPS
-        </div>
-        <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm">
-          <Cpu className="size-4" />
-          AMD RYZEN
-        </div>
-        <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm">
-          <ToggleLeft className="size-4" />
-          Intel
-        </div>
+        {tags.map((tag) => (
+          <div key={tag} className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm">
+            <Sparkles className="size-4" />
+            {tag}
+          </div>
+        ))}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -93,18 +72,19 @@ export default function PurchasePage() {
             className="rounded-2xl border border-white/10 bg-gradient-to-br from-black/40 via-white/5 to-transparent p-5 space-y-3 shadow-[0_20px_80px_rgba(0,0,0,0.35)]"
           >
             <div className="flex items-center justify-between">
-              <p className="text-sm text-white/50">{offer.location}</p>
-              <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-200">🔥 ПРОМО</span>
+              <p className="text-sm text-white/50">{offer.title}</p>
+              <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-200">{offer.badge?.toUpperCase()}</span>
             </div>
-            <h3 className="text-xl font-semibold">{offer.title}</h3>
-            <p className="text-sm text-white/60">{offer.price}</p>
+            <h3 className="text-xl font-semibold">{offer.price}</h3>
             <div className="space-y-2 text-sm text-white/70">
-              <p>{offer.cpu}</p>
-              <p>{offer.ram}</p>
-              <p>{offer.storage}</p>
+              {offer.features.map((feature) => (
+                <p key={feature} className="flex items-center gap-2">
+                  <PlugZap className="size-4 text-emerald-300" /> {feature}
+                </p>
+              ))}
             </div>
             <button className="w-full rounded-xl bg-white text-black py-2 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
-              Перейти к оплате
+              {t("purchase.call") as string}
             </button>
           </div>
         ))}

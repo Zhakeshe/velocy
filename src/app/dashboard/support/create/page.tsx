@@ -3,8 +3,8 @@
 import React from "react";
 import { MessageSquare, Send, ShieldQuestion } from "lucide-react";
 
-const subjects = ["Технический", "Проблема с сервером", "Найден баг"];
-const services = ["Игровые сервера", "Виртуальные сервера", "Услуга не выбрана"];
+const subjects = ["Технический", "Оплата", "Запрос функции"];
+const services = ["Подписки", "Автоматизации", "Услуга не выбрана"];
 
 export default function CreateTicketPage() {
   return (

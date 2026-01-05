@@ -197,6 +197,21 @@
   .pricing-card-gradient {
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(182, 0, 76, 0.05) 100%);
   }
+
+  .page-transition {
+    animation: fade-up 0.35s ease;
+  }
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
 @layer utilities {
