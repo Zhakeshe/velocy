@@ -24,21 +24,14 @@ export async function ensureMigrations() {
    if (!fs.existsSync(journalPath)) {
      fs.mkdirSync(metaFolder, { recursive: true });
 
-     const migrations = fs
-       .readdirSync(migrationsFolder)
-       .filter((file) => file.endsWith(".sql"))
-       .sort();
-
      const journal = {
        version: "7",
        dialect: "sqlite",
-       entries: migrations.map((file, idx) => ({
-         idx,
-         version: "7",
-         when: Date.now() + idx,
-         tag: path.basename(file, ".sql"),
-         breakpoints: false,
-       })),
+       entries: [],
+     } satisfies {
+       version: string;
+       dialect: string;
+       entries: unknown[];
      };
 
      fs.writeFileSync(journalPath, JSON.stringify(journal, null, 2));
