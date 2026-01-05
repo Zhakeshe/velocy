@@ -283,7 +283,7 @@ export default function AuthInner() {
             <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(59,130,246,0.35),transparent_45%)]" />
             <img
-              src="https://images.unsplash.com/photo-1677446501636-9f202255d944?auto=format&fit=crop&w=1600&q=80"
+              src="/10.png"
               alt="Velocy reference background"
               className="h-full w-full object-cover"
               loading="lazy"
