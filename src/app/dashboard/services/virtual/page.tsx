@@ -39,7 +39,7 @@ export default function VirtualServicesPage() {
               key={service.id}
               className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-emerald-500/10 via-white/5 to-transparent p-5 shadow-[0_20px_80px_rgba(0,0,0,0.35)]"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/0 opacity-0 transition group-hover:opacity-100" />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/0 opacity-0 transition group-hover:opacity-100" />
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm text-white/50">Активен с 23 декабря 2024</p>
