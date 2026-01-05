@@ -1,0 +1,57 @@
+import React from 'react';
+import { User, Home, HelpCircle, CreditCard, MessageCircle } from 'lucide-react';
+
+const Navbar = () => {
+  return (
+    <header className="w-full px-4 lg:px-16 py-6 fixed top-0 z-50 bg-black/40 backdrop-blur-xl border-b border-white/5">
+      <div className="flex items-center justify-between mx-auto max-w-[100rem]">
+
+        {}
+        <div className="flex items-center">
+          <a href="/" className="flex items-center group">
+            <div className="relative flex items-center justify-center size-10 overflow-hidden transition-transform group-hover:scale-105">
+              <img
+                src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/project-uploads/7a9e3967-e3f4-423b-b273-7c0d91c5ac32/photo_2026-01-05_16-20-34-Photoroom-1767612131816.png?width=8000&height=8000&resize=contain"
+                alt="Logo"
+                className="w-full h-full object-contain invert"
+              />
+            </div>
+          </a>
+        </div>
+
+        {}
+        <nav className="hidden md:flex items-center gap-8">
+          <a href="#" className="flex items-center gap-2 text-sm font-medium text-white/60 hover:text-white transition-colors">
+            <Home className="size-4" />
+            Главная
+          </a>
+          <a href="#why-us" className="flex items-center gap-2 text-sm font-medium text-white/60 hover:text-white transition-colors">
+            <HelpCircle className="size-4" />
+            Почему мы
+          </a>
+          <a href="#pricing" className="flex items-center gap-2 text-sm font-medium text-white/60 hover:text-white transition-colors">
+            <CreditCard className="size-4" />
+            Тарифные планы
+          </a>
+          <a href="#contact" className="flex items-center gap-2 text-sm font-medium text-white/60 hover:text-white transition-colors">
+            <MessageCircle className="size-4" />
+            Связаться с нами
+          </a>
+        </nav>
+
+        {}
+        <div className="flex items-center gap-4">
+          <a
+            href="/dashboard"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white hover:text-white/80 transition-colors"
+          >
+            <User className="size-4" />
+            Личный кабинет
+          </a>
+        </div>
+      </div>
+    </header>
+  );
+};
+
+export default Navbar;
