@@ -1,11 +1,19 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { User, Home, HelpCircle, CreditCard, MessageCircle, LogOut } from "lucide-react";
 import { useAuth } from "@/lib/hooks/auth-context";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+
+  const [language, setLanguage] = useState<"en" | "ru" | "kk">("en");
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.lang = language;
+    }
+  }, [language]);
 
   const ctaLabel = user ? user.name : "Авторизация";
 
@@ -48,6 +56,23 @@ const Navbar = () => {
 
         {}
         <div className="flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-2 px-3 py-2 text-xs rounded-full bg-white/5 border border-white/10 text-white/70">
+            {[
+              { code: "en", label: "Eng" },
+              { code: "ru", label: "Рус" },
+              { code: "kk", label: "Қаз" },
+            ].map((item) => (
+              <button
+                key={item.code}
+                onClick={() => setLanguage(item.code as typeof language)}
+                className={`px-2 py-1 rounded-full transition ${language === item.code ? "bg-white/20 text-white" : "hover:bg-white/10"}`}
+                type="button"
+                aria-pressed={language === item.code}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
           {user ? (
             <button
               onClick={logout}

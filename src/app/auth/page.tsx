@@ -4,6 +4,7 @@ import React, { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Lock, LogIn, Mail, ShieldCheck, UserRound } from "lucide-react";
 import { useAuth } from "@/lib/hooks/auth-context";
+import Navbar from "@/components/sections/navbar";
 
 const fieldStyles = "w-full rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/50 px-4 py-3";
 const labelStyles = "text-sm text-white/70 mb-2 block";
@@ -67,11 +68,13 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
+      <Navbar />
+
       <div className="absolute left-1/2 -translate-x-1/2 -top-24 h-[520px] w-[520px] bg-blue-600/30 blur-[130px] rounded-full" />
       <div className="absolute -left-24 bottom-10 h-[320px] w-[320px] bg-blue-500/20 blur-[130px] rounded-full" />
       <div className="absolute right-[-120px] top-10 h-[420px] w-[420px] bg-blue-400/25 blur-[130px] rounded-full" />
 
-      <div className="relative z-10 grid lg:grid-cols-[440px_1fr] min-h-screen">
+      <div className="relative z-10 grid lg:grid-cols-[440px_1fr] min-h-screen pt-24">
         <div className="bg-black/80 border-r border-white/10 px-8 md:px-12 py-10 flex flex-col gap-10 backdrop-blur-xl">
           <div className="flex items-center gap-3 text-white/80">
             <div className="size-10 rounded-full bg-white/10 flex items-center justify-center border border-white/10">V</div>
@@ -88,9 +91,9 @@ export default function AuthPage() {
             </div>
 
             <div className="space-y-1">
-              <p className="text-sm text-emerald-300">{mode === "login" ? "Authorization" : "Registration"}</p>
-              <h1 className="text-4xl font-bold leading-tight">{title}</h1>
-              <p className="text-white/60 max-w-md leading-relaxed">{subtitle}</p>
+              <p className="text-xs text-emerald-300">{mode === "login" ? "Authorization" : "Registration"}</p>
+              <h1 className="text-3xl font-bold leading-tight">{title}</h1>
+              <p className="text-white/60 max-w-md leading-relaxed text-sm">{subtitle}</p>
             </div>
 
             <div className="inline-flex items-center gap-4 text-sm text-white/60">
@@ -134,7 +137,7 @@ export default function AuthPage() {
               </div>
             )}
 
-            <div>
+            <div className="space-y-1">
               <label className={labelStyles} htmlFor="email">
                 email
               </label>
@@ -153,7 +156,7 @@ export default function AuthPage() {
               </div>
             </div>
 
-            <div>
+            <div className="space-y-1">
               <label className={labelStyles} htmlFor="password">
                 password
               </label>
@@ -173,7 +176,7 @@ export default function AuthPage() {
             </div>
 
             {mode === "register" ? (
-              <label className="flex items-start gap-3 text-sm text-white/70 cursor-pointer select-none">
+              <label className="flex items-start gap-3 text-sm text-white/70 cursor-pointer select-none leading-relaxed">
                 <input
                   type="checkbox"
                   className="mt-1 size-4 rounded border-white/20 bg-white/10"
@@ -184,13 +187,16 @@ export default function AuthPage() {
               </label>
             ) : (
               <div className="flex items-center justify-between text-sm text-white/60">
-                <label className="inline-flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" className="size-4 rounded border-white/20 bg-white/10" />
-                  Запомнить меня
-                </label>
                 <a href="#" className="text-emerald-200 hover:text-emerald-100">
                   forgot password?
                 </a>
+                <button
+                  type="button"
+                  onClick={() => handleModeChange("register")}
+                  className="text-white hover:text-white/80 font-semibold"
+                >
+                  register
+                </button>
               </div>
             )}
 
@@ -270,7 +276,7 @@ export default function AuthPage() {
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(59,130,246,0.35),transparent_45%)]" />
           <img
-            src="https://avatars.mds.yandex.net/i?id=2111774720f28a10537d15511a991bb7e12e6e3e-8497411-images-thumbs&n=13"
+            src="https://images.unsplash.com/photo-1677446501636-9f202255d944?auto=format&fit=crop&w=1600&q=80"
             alt="Velocy reference background"
             className="h-full w-full object-cover"
             loading="lazy"
