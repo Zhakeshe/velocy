@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, Lock, LogIn, Mail, ShieldCheck, UserRound } from "lucide-react";
+import { ArrowLeft, Lock, LogIn, Mail, UserRound } from "lucide-react";
 import { useAuth } from "@/lib/hooks/auth-context";
 import Navbar from "@/components/sections/navbar";
 
@@ -76,20 +76,7 @@ export default function AuthPage() {
 
       <div className="relative z-10 grid lg:grid-cols-[440px_1fr] min-h-screen pt-24">
         <div className="bg-black/80 border-r border-white/10 px-8 md:px-12 py-10 flex flex-col gap-10 backdrop-blur-xl">
-          <div className="flex items-center gap-3 text-white/80">
-            <div className="size-10 rounded-full bg-white/10 flex items-center justify-center border border-white/10">V</div>
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-white/50">Velocy</p>
-              <p className="font-semibold">Velocy LLC</p>
-            </div>
-          </div>
-
           <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 border border-white/10 text-sm text-white/70">
-              <ShieldCheck className="size-4 text-emerald-300" />
-              <span>Secure access to your client area</span>
-            </div>
-
             <div className="space-y-1">
               <p className="text-xs text-emerald-300">{mode === "login" ? "Authorization" : "Registration"}</p>
               <h1 className="text-3xl font-bold leading-tight">{title}</h1>
