@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { usePathname, useRouter } from "next/navigation";
-import { User, Home, HelpCircle, CreditCard, MessageCircle, LogOut, Sparkles } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { User, Home, HelpCircle, CreditCard, MessageCircle, LogOut } from "lucide-react";
 import { useAuth } from "@/lib/hooks/auth-context";
 import { useLocale } from "@/lib/hooks/locale-context";
 
@@ -10,14 +10,6 @@ const Navbar = () => {
   const { user, logout } = useAuth();
   const { locale, setLocale, t } = useLocale();
   const pathname = usePathname();
-  const router = useRouter();
-
-  const isDashboard = pathname?.startsWith("/dashboard");
-  const quickLinks = [
-    { key: "quick.home", href: "/dashboard" },
-    { key: "quick.finance", href: "/dashboard/balance" },
-    { key: "quick.wiki", href: "/dashboard/wiki" },
-  ];
 
   const ctaLabel = user ? user.name : "Авторизация";
 
@@ -102,28 +94,6 @@ const Navbar = () => {
           </div>
         </div>
 
-        {isDashboard ? (
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 sm:px-4">
-            <div className="flex items-center gap-2 text-sm text-white/60">
-              <Sparkles className="size-4 text-emerald-300" />
-              <span>{t("hero.title") as string}</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs sm:text-sm text-white/60">
-              {quickLinks.map((link) => {
-                const active = pathname === link.href;
-                return (
-                  <button
-                    key={link.key}
-                    className={`rounded-lg px-3 py-1 ${active ? "bg-white/10 text-white" : "hover:bg-white/5"}`}
-                    onClick={() => router.push(link.href)}
-                  >
-                    {t(link.key) as string}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ) : null}
       </div>
     </header>
   );

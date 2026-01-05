@@ -2,6 +2,7 @@
 
 import React, { useEffect } from "react";
 import {
+  BookOpen,
   Bell,
   CircleUserRound,
   CreditCard,
@@ -27,6 +28,7 @@ const baseNavSections = [
   {
     title: "Общее",
     links: [
+      { icon: BookOpen, labelKey: "quick.wiki", href: "/dashboard/wiki" },
       { icon: Home, labelKey: "nav.home", href: "/dashboard" },
       { icon: Bell, labelKey: "nav.notifications", href: "/dashboard/notifications" },
       { icon: Wallet2, labelKey: "nav.balance", href: "/dashboard/balance" },

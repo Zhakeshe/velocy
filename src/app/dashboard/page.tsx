@@ -8,6 +8,7 @@ import { useLocale } from "@/lib/hooks/locale-context";
 export default function DashboardHomePage() {
   const { user } = useAuth();
   const services = user?.services ?? [];
+  const hasServices = services.length > 0;
   const { t } = useLocale();
 
   return (
@@ -32,41 +33,64 @@ export default function DashboardHomePage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-transparent p-5 shadow-[0_12px_80px_rgba(59,130,246,0.25)]">
-          <p className="text-xs text-white/60">{t("stats.balance") as string}</p>
-          <div className="mt-2 flex items-end justify-between">
-            <p className="text-3xl font-bold">4 ₽</p>
-            <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-200">{t("stats.balanceDelta") as string}</span>
-          </div>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-          <p className="text-xs text-white/60">{t("stats.products") as string}</p>
-          <div className="mt-2 flex items-center justify-between">
-            <p className="text-3xl font-bold">{services.length}</p>
-            <span className="text-xs text-white/40">{t("stats.productsHint") as string}</span>
-          </div>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-          <p className="text-xs text-white/60">{t("stats.invoice") as string}</p>
-          <div className="mt-2 space-y-1">
-            <p className="text-xl font-semibold">22 July 2025</p>
-            <p className="text-xs text-white/50">{t("stats.invoiceHint") as string}</p>
-          </div>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-          <p className="text-xs text-white/60">{t("stats.support") as string}</p>
-          <div className="mt-2 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-400/20 via-blue-500/20 to-transparent flex items-center justify-center border border-white/10">
-              <FlameKindling className="size-5 text-white" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold">Онлайн 24/7</p>
-              <p className="text-xs text-white/50">{t("stats.supportHint") as string}</p>
+      {hasServices ? (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-transparent p-5 shadow-[0_12px_80px_rgba(59,130,246,0.25)]">
+            <p className="text-xs text-white/60">{t("stats.balance") as string}</p>
+            <div className="mt-2 flex items-end justify-between">
+              <p className="text-3xl font-bold">4 ₽</p>
+              <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-200">{t("stats.balanceDelta") as string}</span>
             </div>
           </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+            <p className="text-xs text-white/60">{t("stats.products") as string}</p>
+            <div className="mt-2 flex items-center justify-between">
+              <p className="text-3xl font-bold">{services.length}</p>
+              <span className="text-xs text-white/40">{t("stats.productsHint") as string}</span>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+            <p className="text-xs text-white/60">{t("stats.invoice") as string}</p>
+            <div className="mt-2 space-y-1">
+              <p className="text-xl font-semibold">22 July 2025</p>
+              <p className="text-xs text-white/50">{t("stats.invoiceHint") as string}</p>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+            <p className="text-xs text-white/60">{t("stats.support") as string}</p>
+            <div className="mt-2 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-400/20 via-blue-500/20 to-transparent flex items-center justify-center border border-white/10">
+                <FlameKindling className="size-5 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Онлайн 24/7</p>
+                <p className="text-xs text-white/50">{t("stats.supportHint") as string}</p>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-white/15 bg-white/5 p-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-1">
+            <p className="text-sm font-semibold">{t("services.emptyTitle") as string}</p>
+            <p className="text-xs text-white/60">{t("services.emptyDescription") as string}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <a
+              href="/dashboard/purchase"
+              className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-black shadow-emerald-500/30"
+            >
+              {t("services.emptyPrimary") as string}
+            </a>
+            <a
+              href="/dashboard/wiki"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/20 px-4 py-2 text-sm text-white/70 hover:text-white"
+            >
+              {t("quick.wiki") as string}
+            </a>
+          </div>
+        </div>
+      )}
 
       <div className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-5">
         <div className="flex items-center justify-between">
