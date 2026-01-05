@@ -18,6 +18,32 @@ export async function ensureMigrations() {
   const migrationsFolder = path.join(process.cwd(), "drizzle");
   fs.mkdirSync(migrationsFolder, { recursive: true });
 
+   const metaFolder = path.join(migrationsFolder, "meta");
+   const journalPath = path.join(metaFolder, "_journal.json");
+
+   if (!fs.existsSync(journalPath)) {
+     fs.mkdirSync(metaFolder, { recursive: true });
+
+     const migrations = fs
+       .readdirSync(migrationsFolder)
+       .filter((file) => file.endsWith(".sql"))
+       .sort();
+
+     const journal = {
+       version: "7",
+       dialect: "sqlite",
+       entries: migrations.map((file, idx) => ({
+         idx,
+         version: "7",
+         when: Date.now() + idx,
+         tag: path.basename(file, ".sql"),
+         breakpoints: false,
+       })),
+     };
+
+     fs.writeFileSync(journalPath, JSON.stringify(journal, null, 2));
+   }
+
   migrationPromise = migrate(db, { migrationsFolder }).catch((error) => {
     migrationPromise = null;
     throw error;
