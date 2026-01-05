@@ -2,15 +2,29 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
+export type UserService = {
+  id: string;
+  name: string;
+  domain: string;
+  plan: string;
+  price: string;
+  billing: string;
+  nextInvoice: string;
+  status: "active" | "pending" | "expired";
+};
+
 type StoredUser = {
   name: string;
   email: string;
   password: string;
   createdAt: string;
+  services?: UserService[];
 };
 
+type AuthUser = Pick<StoredUser, "name" | "email"> & { services: UserService[] };
+
 type AuthContextValue = {
-  user: Pick<StoredUser, "name" | "email"> | null;
+  user: AuthUser | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (payload: { name: string; email: string; password: string }) => Promise<void>;
@@ -24,6 +38,10 @@ const STORAGE_KEYS = {
   sessionEmail: "ve_auth_session_email",
 };
 
+function withServicesHydrated(users: StoredUser[]): StoredUser[] {
+  return users.map((entry) => ({ ...entry, services: entry.services ?? [] }));
+}
+
 function readUsersFromStorage(): StoredUser[] {
   if (typeof window === "undefined") return [];
 
@@ -32,7 +50,7 @@ function readUsersFromStorage(): StoredUser[] {
 
   try {
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) return parsed as StoredUser[];
+    if (Array.isArray(parsed)) return withServicesHydrated(parsed as StoredUser[]);
     return [];
   } catch (error) {
     console.error("Failed to parse stored users", error);
@@ -45,8 +63,33 @@ function writeUsersToStorage(users: StoredUser[]) {
   window.localStorage.setItem(STORAGE_KEYS.users, JSON.stringify(users));
 }
 
+function createDemoServices(ownerName: string): UserService[] {
+  return [
+    {
+      id: "svc-1",
+      name: "britstor.kz",
+      domain: "britstor.kz",
+      plan: "VE | VDS CLOUD",
+      price: "15000 ₸ / мес.",
+      billing: "3 мес. / 42600 ₸",
+      nextInvoice: "с 22 July 2025",
+      status: "active",
+    },
+    {
+      id: "svc-2",
+      name: "eduhelp.tld",
+      domain: "eduhelp.tld",
+      plan: "VE | Shared",
+      price: "4000 ₸ / мес.",
+      billing: "12 мес. / 48000 ₸",
+      nextInvoice: "с 3 July 2025",
+      status: "active",
+    },
+  ].map((service, index) => ({ ...service, id: `${service.id}-${ownerName || "user"}-${index}` }));
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<Pick<StoredUser, "name" | "email"> | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [users, setUsers] = useState<StoredUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -57,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const sessionEmail = window.localStorage.getItem(STORAGE_KEYS.sessionEmail);
       if (sessionEmail) {
         const found = readUsersFromStorage().find((entry) => entry.email === sessionEmail);
-        if (found) setUser({ name: found.name, email: found.email });
+        if (found) setUser({ name: found.name, email: found.email, services: found.services ?? [] });
       }
     }
 
@@ -75,7 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!existing) throw new Error("Пользователь не найден");
       if (existing.password !== password) throw new Error("Неверный пароль");
 
-      setUser({ name: existing.name, email: existing.email });
+      setUser({ name: existing.name, email: existing.email, services: existing.services ?? [] });
 
       if (typeof window !== "undefined") {
         window.localStorage.setItem(STORAGE_KEYS.sessionEmail, email);
@@ -89,6 +132,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const exists = users.some((entry) => entry.email === email);
       if (exists) throw new Error("Пользователь уже зарегистрирован");
 
+      const services = createDemoServices(name);
+
       const nextUsers = [
         ...users,
         {
@@ -96,11 +141,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email,
           password,
           createdAt: new Date().toISOString(),
+          services,
         },
       ];
 
       persistUsers(nextUsers);
-      setUser({ name, email });
+      setUser({ name, email, services });
 
       if (typeof window !== "undefined") {
         window.localStorage.setItem(STORAGE_KEYS.sessionEmail, email);

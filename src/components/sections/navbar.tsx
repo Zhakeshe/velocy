@@ -21,7 +21,6 @@ const Navbar = () => {
     <header className="w-full px-4 lg:px-16 py-6 fixed top-0 z-50 bg-black/40 backdrop-blur-xl border-b border-white/5">
       <div className="flex items-center justify-between mx-auto max-w-[100rem]">
 
-        {}
         <div className="flex items-center">
           <a href="/" className="flex items-center group">
             <div className="relative flex items-center justify-center size-10 overflow-hidden transition-transform group-hover:scale-105">
@@ -34,7 +33,6 @@ const Navbar = () => {
           </a>
         </div>
 
-        {}
         <nav className="hidden md:flex items-center gap-8">
           <a href="#" className="flex items-center gap-2 text-sm font-medium text-white/60 hover:text-white transition-colors">
             <Home className="size-4" />
@@ -54,7 +52,6 @@ const Navbar = () => {
           </a>
         </nav>
 
-        {}
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-2 px-3 py-2 text-xs rounded-full bg-white/5 border border-white/10 text-white/70">
             {[

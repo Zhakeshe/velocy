@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { ArrowLeft, Lock, LogIn, Mail, UserRound } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ArrowLeft, Lock, LogIn, Mail, ShieldCheck, UserRound } from "lucide-react";
 import { useAuth } from "@/lib/hooks/auth-context";
 import Navbar from "@/components/sections/navbar";
 
@@ -22,14 +22,15 @@ export default function AuthPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { user, login, register, logout } = useAuth();
+  const router = useRouter();
+  const { user, isLoading, login, register, logout } = useAuth();
 
   const title = useMemo(() => (mode === "login" ? "Welcome back" : "Create account"), [mode]);
   const subtitle = useMemo(
     () =>
       mode === "login"
         ? "Log in to your account to manage your services and billing."
-        : "Sign up to access your Velocy LLC client area and manage your products in one place.",
+        : "Sign up to access your client area and manage your products in one place.",
     [mode],
   );
 
@@ -43,10 +44,12 @@ export default function AuthPage() {
       if (mode === "login") {
         await login(email.trim(), password);
         setMessage("Успешный вход. Добро пожаловать!");
+        router.push("/dashboard");
       } else {
         if (!acceptedTerms) throw new Error("Необходимо согласиться с пользовательским соглашением");
         await register({ name: name.trim(), email: email.trim(), password });
         setMessage("Аккаунт создан. Теперь вы можете управлять услугами");
+        router.push("/dashboard");
       }
     } catch (err) {
       const reason = err instanceof Error ? err.message : "Что-то пошло не так";
@@ -65,6 +68,12 @@ export default function AuthPage() {
     setName("");
     setAcceptedTerms(false);
   };
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      router.replace("/dashboard");
+    }
+  }, [isLoading, router, user]);
 
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
