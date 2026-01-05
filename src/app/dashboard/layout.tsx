@@ -98,7 +98,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       <Navbar />
 
-      <div className="relative z-10 pt-20 flex">
+      <div className="relative z-10 pt-28 flex">
         <aside className="hidden lg:flex w-72 flex-col gap-6 px-5 py-7 border-r border-white/10 bg-white/5 backdrop-blur-xl min-h-[calc(100vh-80px)]">
           <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-3">
             <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-emerald-400/30 via-blue-500/30 to-transparent flex items-center justify-center border border-white/15">
@@ -147,32 +147,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </aside>
 
         <main className="flex-1 px-4 sm:px-6 lg:px-10 pb-16 space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 sm:px-4">
-            <div className="flex items-center gap-2 text-sm text-white/60">
-              <Sparkles className="size-4 text-emerald-300" />
-              <span>{t("hero.title") as string}</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs sm:text-sm text-white/60">
-              <button
-                className={`rounded-lg px-3 py-1 ${pathname === "/dashboard" ? "bg-white/10 text-white" : "hover:bg-white/5"}`}
-                onClick={() => router.push("/dashboard")}
-              >
-                {t("quick.home") as string}
-              </button>
-              <button
-                className={`rounded-lg px-3 py-1 ${pathname.startsWith("/dashboard/balance") ? "bg-white/10 text-white" : "hover:bg-white/5"}`}
-                onClick={() => router.push("/dashboard/balance")}
-              >
-                {t("quick.finance") as string}
-              </button>
-              <button
-                className={`rounded-lg px-3 py-1 ${pathname.startsWith("/dashboard/wiki") ? "bg-white/10 text-white" : "hover:bg-white/5"}`}
-                onClick={() => router.push("/dashboard/wiki")}
-              >
-                {t("quick.wiki") as string}
-              </button>
-            </div>
-          </div>
           <div key={pathname} className="page-transition">
             {children}
           </div>
