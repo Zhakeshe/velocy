@@ -55,7 +55,13 @@ export async function registerUser(payload: { name: string; email: string; passw
   const [created] = await db
     .insert(users)
     .values({ name, email, passwordHash })
-    .returning({ id: users.id, name: users.name, email: users.email, createdAt: users.createdAt });
+    .returning({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      balance: users.balance,
+      createdAt: users.createdAt,
+    });
 
   const services = await db
     .select()

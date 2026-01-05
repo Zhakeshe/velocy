@@ -16,6 +16,7 @@ export async function POST(request: Request) {
         user: {
           name: result.user.name,
           email: result.user.email,
+          balance: result.user.balance,
           services: result.services,
         },
       },

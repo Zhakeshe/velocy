@@ -18,6 +18,7 @@ export async function GET(request: Request) {
     user: {
       name: user.user.name,
       email: user.user.email,
+      balance: user.user.balance,
       services: user.services,
     },
   });

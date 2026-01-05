@@ -3,13 +3,12 @@
 import React from "react";
 import { Banknote, CreditCard, IndianRupee, ShieldCheck, Wallet2 } from "lucide-react";
 
+import { useAuth } from "@/lib/hooks/auth-context";
+
 export default function BalancePage() {
-  const history = [
-    { id: "486789", amount: "+450₽", time: "2 месяца назад" },
-    { id: "372728", amount: "+340₽", time: "2 месяца назад" },
-    { id: "372739", amount: "+340₽", time: "2 месяца назад" },
-    { id: "372750", amount: "+340₽", time: "2 месяца назад" },
-  ];
+  const { user } = useAuth();
+  const balance = user?.balance ?? 0;
+  const history: { id: string; amount: string; time: string }[] = [];
 
   return (
     <div className="space-y-6">
@@ -24,7 +23,7 @@ export default function BalancePage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-white/60">Текущий баланс</p>
-              <p className="text-3xl font-bold mt-1">4 ₽</p>
+              <p className="text-3xl font-bold mt-1">{balance.toLocaleString()} ₽</p>
             </div>
             <div className="rounded-xl bg-emerald-500/15 px-4 py-2 text-sm font-semibold text-emerald-200">активировать автоплатеж</div>
           </div>
@@ -68,17 +67,23 @@ export default function BalancePage() {
           <Banknote className="size-4" />
           <span>История последних платежей</span>
         </div>
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {history.map((item) => (
-            <div key={item.id} className="rounded-xl border border-white/10 bg-black/40 px-4 py-3 flex items-center justify-between">
-              <div className="space-y-1 text-sm">
-                <p className="text-white/80">Пополнение баланса #{item.id}</p>
-                <p className="text-white/40">{item.time}</p>
+        {history.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-white/15 bg-black/40 px-4 py-6 text-sm text-white/60">
+            Пополнений еще не было — баланс аннулирован до первой оплаты.
+          </div>
+        ) : (
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {history.map((item) => (
+              <div key={item.id} className="rounded-xl border border-white/10 bg-black/40 px-4 py-3 flex items-center justify-between">
+                <div className="space-y-1 text-sm">
+                  <p className="text-white/80">Пополнение баланса #{item.id}</p>
+                  <p className="text-white/40">{item.time}</p>
+                </div>
+                <span className="text-emerald-300 font-semibold">{item.amount}</span>
               </div>
-              <span className="text-emerald-300 font-semibold">{item.amount}</span>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-3">

@@ -10,6 +10,7 @@ export default function DashboardHomePage() {
   const services = user?.services ?? [];
   const hasServices = services.length > 0;
   const { t } = useLocale();
+  const balance = user?.balance ?? 0;
 
   return (
     <div className="space-y-6">
@@ -38,9 +39,12 @@ export default function DashboardHomePage() {
           <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-transparent p-5 shadow-[0_12px_80px_rgba(59,130,246,0.25)]">
             <p className="text-xs text-white/60">{t("stats.balance") as string}</p>
             <div className="mt-2 flex items-end justify-between">
-              <p className="text-3xl font-bold">4 ₽</p>
-              <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-200">{t("stats.balanceDelta") as string}</span>
+              <p className="text-3xl font-bold">{balance.toLocaleString()} ₽</p>
+              <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/70">
+                {t("stats.balanceReset") as string}
+              </span>
             </div>
+            <p className="mt-2 text-xs text-white/50">{t("stats.balanceZero") as string}</p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
             <p className="text-xs text-white/60">{t("stats.products") as string}</p>

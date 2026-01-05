@@ -9,4 +9,4 @@ export type UserService = {
   status: "active" | "pending" | "expired";
 };
 
-export type AuthUser = { name: string; email: string; services: UserService[] };
+export type AuthUser = { name: string; email: string; balance: number; services: UserService[] };
