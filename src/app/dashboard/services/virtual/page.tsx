@@ -65,9 +65,12 @@ export default function VirtualServicesPage() {
                   24/7
                 </span>
               </div>
-              <button className="mt-4 w-full rounded-xl bg-white text-black py-2 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
+              <a
+                href={`/dashboard/services/virtual/${service.id}`}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-white text-black py-2 text-sm font-semibold shadow hover:-translate-y-0.5 transition"
+              >
                 Перейти в панель
-              </button>
+              </a>
             </div>
           ))}
         </div>

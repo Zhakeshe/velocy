@@ -15,6 +15,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ service }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Не удалось оформить заказ";
-    return NextResponse.json({ error: message }, { status: 400 });
+    const status = message.includes("Недостаточно средств") ? 402 : 400;
+    return NextResponse.json({ error: message }, { status });
   }
 }

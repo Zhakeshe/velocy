@@ -11,6 +11,19 @@ function withId(prefix: string) {
   return `${prefix}-${crypto.randomUUID()}`;
 }
 
+function generateIp() {
+  return Array.from({ length: 4 }, () => Math.floor(Math.random() * 200) + 20).join(".");
+}
+
+function generateHostname(name: string) {
+  const base = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 12);
+  return `${base || "vps"}.${crypto.randomUUID().slice(0, 6)}.kz`;
+}
+
 function toUserServices(rows: typeof userServices.$inferSelect[]): UserService[] {
   return rows.map((row) => ({
     id: row.id,
@@ -22,6 +35,11 @@ function toUserServices(rows: typeof userServices.$inferSelect[]): UserService[]
     billing: row.billing,
     nextInvoice: row.nextInvoice,
     status: row.status as UserService["status"],
+    hostname: row.hostname,
+    ip: row.ip,
+    ptr: row.ptr,
+    panelUrl: row.panelUrl,
+    activatedAt: row.activatedAt,
   }));
 }
 
@@ -166,6 +184,10 @@ export async function createUserService(payload: {
     throw new Error("Тариф не найден");
   }
 
+  if (user.balance < item.price) {
+    throw new Error("Недостаточно средств на балансе");
+  }
+
   const nextInvoice = new Date();
   nextInvoice.setDate(nextInvoice.getDate() + 30);
 
@@ -181,9 +203,15 @@ export async function createUserService(payload: {
       price: `${item.price.toLocaleString()} ${item.currency}/мес`,
       billing: payload.billing || "Ежемесячно",
       nextInvoice: nextInvoice.toISOString(),
-      status: "pending",
+      status: "active",
+      hostname: generateHostname(item.name),
+      ip: generateIp(),
+      ptr: `${item.owner.toLowerCase().replace(/\s+/g, "-")}.${item.region.toLowerCase()}.velocy.cloud`,
+      panelUrl: `https://panel.velocy.cloud/${crypto.randomUUID().slice(0, 6)}`,
     })
     .returning();
+
+  await db.update(users).set({ balance: user.balance - item.price }).where(eq(users.id, user.id));
 
   return toUserServices([service])[0];
 }

@@ -8,6 +8,11 @@ export type UserService = {
   billing: string;
   nextInvoice: string;
   status: "active" | "pending" | "expired";
+  ip: string;
+  hostname: string;
+  ptr: string;
+  panelUrl: string;
+  activatedAt: string;
 };
 
 export type AuthUser = { name: string; email: string; balance: number; services: UserService[] };

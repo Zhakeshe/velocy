@@ -40,4 +40,9 @@ export const userServices = sqliteTable("user_services", {
   billing: text("billing").notNull(),
   nextInvoice: text("next_invoice").notNull(),
   status: text("status").notNull(),
+  hostname: text("hostname").notNull().default(""),
+  ip: text("ip").notNull().default(""),
+  ptr: text("ptr").notNull().default(""),
+  panelUrl: text("panel_url").notNull().default(""),
+  activatedAt: text("activated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });

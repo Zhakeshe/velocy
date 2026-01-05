@@ -31,7 +31,7 @@ const billingPeriods = ["Ежемесячно", "Ежеквартально", "�
 export default function PurchaseDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { t } = useLocale();
   const [item, setItem] = React.useState<CatalogItem | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -91,8 +91,13 @@ export default function PurchaseDetailPage() {
       });
       const data = await res.json();
       if (!res.ok) {
+        if (res.status === 402) {
+          router.push("/dashboard/balance");
+          throw new Error(t("purchase.balanceRequired") as string);
+        }
         throw new Error(data?.error || "Не удалось оформить");
       }
+      await refreshUser();
       router.push("/dashboard/services/virtual");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Не удалось оформить";
