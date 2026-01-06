@@ -1,0 +1,9 @@
+ALTER TABLE `catalog_items` ADD COLUMN `price` integer NOT NULL DEFAULT 0;
+ALTER TABLE `catalog_items` ADD COLUMN `currency` text NOT NULL DEFAULT '₸';
+ALTER TABLE `catalog_items` ADD COLUMN `region` text NOT NULL DEFAULT 'KZ';
+ALTER TABLE `catalog_items` ADD COLUMN `cpu` text NOT NULL DEFAULT '';
+ALTER TABLE `catalog_items` ADD COLUMN `ram` text NOT NULL DEFAULT '';
+ALTER TABLE `catalog_items` ADD COLUMN `storage` text NOT NULL DEFAULT '';
+ALTER TABLE `catalog_items` ADD COLUMN `bandwidth` text NOT NULL DEFAULT '';
+ALTER TABLE `catalog_items` ADD COLUMN `ddos` text NOT NULL DEFAULT '';
+ALTER TABLE `user_services` ADD COLUMN `catalog_id` text NOT NULL DEFAULT 'custom';
