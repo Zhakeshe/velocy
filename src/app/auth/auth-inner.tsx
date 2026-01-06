@@ -23,9 +23,6 @@ export default function AuthInner() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const telegramLoginUrl =
-    process.env.NEXT_PUBLIC_TELEGRAM_LOGIN_URL?.trim() || "https://t.me/VelocyLLC";
-
   const router = useRouter();
   const { user, isLoading, login, register, logout } = useAuth();
 
@@ -78,9 +75,9 @@ export default function AuthInner() {
     setAcceptedTerms(false);
   };
 
-  const handleTelegramLogin = () => {
+  const handleOAuthRedirect = (provider: "telegram" | "google" | "discord") => {
     if (typeof window === "undefined") return;
-    window.open(telegramLoginUrl, "_blank", "noopener,noreferrer");
+    window.location.href = `/api/auth/${provider}`;
   };
 
   useEffect(() => {
@@ -227,7 +224,7 @@ export default function AuthInner() {
             <div className="space-y-3">
               <button
                 type="button"
-                onClick={handleTelegramLogin}
+                onClick={() => handleOAuthRedirect("telegram")}
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#2AABEE] text-white font-semibold border border-white/15 shadow-[0_15px_60px_rgba(42,171,238,0.35)] hover:brightness-110 transition"
               >
                 <span className="inline-flex items-center justify-center h-8 w-8 rounded-lg bg-white/15 border border-white/20">
@@ -245,12 +242,14 @@ export default function AuthInner() {
               <div className="grid grid-cols-2 gap-3 text-sm text-white/80">
                 <button
                   type="button"
+                  onClick={() => handleOAuthRedirect("google")}
                   className="w-full py-3 rounded-xl bg-white/10 border border-white/15 hover:border-white/40"
                 >
                   Google
                 </button>
                 <button
                   type="button"
+                  onClick={() => handleOAuthRedirect("discord")}
                   className="w-full py-3 rounded-xl bg-white/10 border border-white/15 hover:border-white/40"
                 >
                   Discord

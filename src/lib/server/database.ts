@@ -98,6 +98,35 @@ export async function registerUser(payload: { name: string; email: string; passw
   return toAuthUser(created, toUserServices(services));
 }
 
+export async function upsertOAuthUser(payload: { provider: string; providerId: string; email: string; name: string }) {
+  await ensureMigrations();
+  const { email, name, provider, providerId } = payload;
+  const [existing] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+
+  const placeholderPassword = await bcrypt.hash(`${provider}:${providerId}`, 10);
+
+  if (existing) {
+    const services = await db
+      .select()
+      .from(userServices)
+      .where(eq(userServices.userId, existing.id))
+      .orderBy(desc(userServices.createdAt));
+
+    return toAuthUser(existing, toUserServices(services));
+  }
+
+  const [created] = await db
+    .insert(users)
+    .values({
+      name: name || email.split("@")[0],
+      email,
+      passwordHash: placeholderPassword,
+    })
+    .returning();
+
+  return toAuthUser(created, []);
+}
+
 export async function verifyLogin(email: string, password: string) {
   await ensureMigrations();
   const [existing] = await db.select().from(users).where(eq(users.email, email)).limit(1);
