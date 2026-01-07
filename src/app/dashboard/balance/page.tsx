@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Banknote, CreditCard, IndianRupee, ShieldCheck, Wallet2 } from "lucide-react";
 
 import { useAuth } from "@/lib/hooks/auth-context";
@@ -9,6 +9,36 @@ export default function BalancePage() {
   const { user } = useAuth();
   const balance = user?.balance ?? 0;
   const history: { id: string; amount: string; time: string }[] = [];
+  const [amount, setAmount] = useState("100");
+  const [paymentMethod, setPaymentMethod] = useState("send");
+  const [currency, setCurrency] = useState("RUB");
+
+  const handleCheckout = async () => {
+    if (paymentMethod !== "send") {
+      window.alert("Этот способ оплаты будет доступен позже.");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/payments/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount, currency, method: paymentMethod }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error || "Не удалось создать счет.");
+      }
+
+      if (data?.payUrl) {
+        window.location.href = data.payUrl;
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Ошибка оплаты.";
+      window.alert(message);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -48,16 +78,39 @@ export default function BalancePage() {
             <input
               className="rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm focus:border-emerald-400/60 focus:outline-none"
               placeholder="100"
-              defaultValue="100"
+              value={amount}
+              onChange={(event) => setAmount(event.target.value)}
             />
-            <div className="rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm">Способ оплаты: ЮKassa</div>
+            <select
+              className="rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm focus:border-emerald-400/60 focus:outline-none"
+              value={paymentMethod}
+              onChange={(event) => setPaymentMethod(event.target.value)}
+            >
+              <option value="send">Send (Crypto Pay)</option>
+              <option value="yookassa">ЮKassa</option>
+              <option value="card">Банковская карта</option>
+            </select>
+            <select
+              className="rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm focus:border-emerald-400/60 focus:outline-none sm:col-span-2"
+              value={currency}
+              onChange={(event) => setCurrency(event.target.value)}
+            >
+              <option value="KZT">Тенге (KZT)</option>
+              <option value="RUB">Рубль (RUB)</option>
+              <option value="USD">Доллар (USD)</option>
+            </select>
           </div>
           <div className="flex flex-wrap gap-3">
             <button className="flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-black shadow-emerald-500/30">
               <Wallet2 className="size-4" />
               Пополнить
             </button>
-            <button className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm text-white/80 hover:text-white">Перейти к оплате</button>
+            <button
+              className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm text-white/80 hover:text-white"
+              onClick={handleCheckout}
+            >
+              Перейти к оплате
+            </button>
           </div>
         </div>
       </div>
