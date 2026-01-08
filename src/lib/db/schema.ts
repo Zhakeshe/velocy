@@ -10,6 +10,16 @@ export const users = sqliteTable("users", {
   notifyEmail: integer("notify_email").notNull().default(1),
   notifyBrowser: integer("notify_browser").notNull().default(0),
   twoFactorEnabled: integer("two_factor_enabled").notNull().default(0),
+  emailVerified: integer("email_verified").notNull().default(0),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const authCodes = sqliteTable("auth_codes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  email: text("email").notNull(),
+  code: text("code").notNull(),
+  purpose: text("purpose").notNull(),
+  expiresAt: text("expires_at").notNull(),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 

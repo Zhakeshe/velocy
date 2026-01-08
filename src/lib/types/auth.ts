@@ -22,5 +22,6 @@ export type AuthUser = {
   notifyEmail: boolean;
   notifyBrowser: boolean;
   twoFactorEnabled: boolean;
+  emailVerified: boolean;
   services: UserService[];
 };

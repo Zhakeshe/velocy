@@ -33,7 +33,7 @@ export default function BalancePage() {
       const response = await fetch("/api/payments/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount, currency, method: paymentMethod }),
+        body: JSON.stringify({ amount, currency, method: paymentMethod, email: user?.email }),
       });
       const data = await response.json();
 
@@ -50,7 +50,7 @@ export default function BalancePage() {
     }
   };
 
-  const handleTopUp = () => {
+  const handleTopUp = async () => {
     const trimmedAmount = amount.trim();
     if (!trimmedAmount) {
       window.alert("Введите сумму пополнения.");
@@ -67,6 +67,23 @@ export default function BalancePage() {
 
     addInvoice(invoice);
     setHistory(getInvoices());
+
+    if (user?.email && user.notifyEmail) {
+      try {
+        await fetch("/api/notifications/topup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: user.email,
+            amount: trimmedAmount,
+            currency,
+            method: paymentMethod,
+          }),
+        });
+      } catch (error) {
+        console.error("Failed to send top-up notification", error);
+      }
+    }
   };
 
   return (
