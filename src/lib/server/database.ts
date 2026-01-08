@@ -1,10 +1,10 @@
 import crypto from "crypto";
 
 import bcrypt from "bcrypt";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 
 import { db, ensureMigrations } from "@/lib/db/client";
-import { catalogItems, userServices, users } from "@/lib/db/schema";
+import { authCodes, catalogItems, userServices, users } from "@/lib/db/schema";
 import type { AuthUser, UserService } from "@/lib/types/auth";
 
 function withId(prefix: string) {
@@ -32,6 +32,7 @@ function toAuthUser(userRow: typeof users.$inferSelect, services: UserService[] 
     notifyEmail: Boolean(userRow.notifyEmail),
     notifyBrowser: Boolean(userRow.notifyBrowser),
     twoFactorEnabled: Boolean(userRow.twoFactorEnabled),
+    emailVerified: Boolean(userRow.emailVerified),
     services,
   };
 }
@@ -86,7 +87,7 @@ export async function registerUser(payload: { name: string; email: string; passw
   const passwordHash = await bcrypt.hash(password, 10);
   const [created] = await db
     .insert(users)
-    .values({ name, email, passwordHash })
+    .values({ name, email, passwordHash, emailVerified: 0 })
     .returning();
 
   const services = await db
@@ -121,6 +122,7 @@ export async function upsertOAuthUser(payload: { provider: string; providerId: s
       name: name || email.split("@")[0],
       email,
       passwordHash: placeholderPassword,
+      emailVerified: 1,
     })
     .returning();
 
@@ -146,6 +148,44 @@ export async function verifyLogin(email: string, password: string) {
     .orderBy(desc(userServices.createdAt));
 
   return toAuthUser(existing, toUserServices(services));
+}
+
+export async function markEmailVerified(email: string) {
+  await ensureMigrations();
+  await db.update(users).set({ emailVerified: 1 }).where(eq(users.email, email));
+}
+
+export async function createAuthCode(payload: { email: string; purpose: string; ttlMinutes?: number }) {
+  await ensureMigrations();
+  const ttl = payload.ttlMinutes ?? 10;
+  const expiresAt = new Date(Date.now() + ttl * 60 * 1000).toISOString();
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+  await db.insert(authCodes).values({
+    email: payload.email,
+    code,
+    purpose: payload.purpose,
+    expiresAt,
+  });
+
+  return code;
+}
+
+export async function verifyAuthCode(payload: { email: string; code: string; purpose: string }) {
+  await ensureMigrations();
+  const [match] = await db
+    .select()
+    .from(authCodes)
+    .where(and(eq(authCodes.email, payload.email), eq(authCodes.purpose, payload.purpose)))
+    .orderBy(desc(authCodes.createdAt))
+    .limit(1);
+
+  if (!match) return false;
+  if (match.code !== payload.code) return false;
+  if (new Date(match.expiresAt).getTime() < Date.now()) return false;
+
+  await db.delete(authCodes).where(eq(authCodes.id, match.id));
+  return true;
 }
 
 export async function listCatalog() {

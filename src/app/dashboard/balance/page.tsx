@@ -1,17 +1,27 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Banknote, CreditCard, IndianRupee, ShieldCheck, Wallet2 } from "lucide-react";
 
 import { useAuth } from "@/lib/hooks/auth-context";
+import { addInvoice, getInvoices, type Invoice } from "@/lib/invoices";
 
 export default function BalancePage() {
   const { user } = useAuth();
   const balance = user?.balance ?? 0;
-  const history: { id: string; amount: string; time: string }[] = [];
+  const [history, setHistory] = useState<Invoice[]>([]);
   const [amount, setAmount] = useState("100");
   const [paymentMethod, setPaymentMethod] = useState("send");
   const [currency, setCurrency] = useState("RUB");
+  const currencySymbol = useMemo(() => {
+    if (currency === "KZT") return "₸";
+    if (currency === "USD") return "$";
+    return "₽";
+  }, [currency]);
+
+  useEffect(() => {
+    setHistory(getInvoices());
+  }, []);
 
   const handleCheckout = async () => {
     if (paymentMethod !== "send") {
@@ -23,7 +33,7 @@ export default function BalancePage() {
       const response = await fetch("/api/payments/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount, currency, method: paymentMethod }),
+        body: JSON.stringify({ amount, currency, method: paymentMethod, email: user?.email }),
       });
       const data = await response.json();
 
@@ -37,6 +47,42 @@ export default function BalancePage() {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Ошибка оплаты.";
       window.alert(message);
+    }
+  };
+
+  const handleTopUp = async () => {
+    const trimmedAmount = amount.trim();
+    if (!trimmedAmount) {
+      window.alert("Введите сумму пополнения.");
+      return;
+    }
+
+    const invoice: Invoice = {
+      id: crypto.randomUUID(),
+      amount: `${trimmedAmount} ${currencySymbol}`,
+      time: new Date().toLocaleString("ru-RU"),
+      method: paymentMethod,
+      status: "pending",
+    };
+
+    addInvoice(invoice);
+    setHistory(getInvoices());
+
+    if (user?.email && user.notifyEmail) {
+      try {
+        await fetch("/api/notifications/topup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: user.email,
+            amount: trimmedAmount,
+            currency,
+            method: paymentMethod,
+          }),
+        });
+      } catch (error) {
+        console.error("Failed to send top-up notification", error);
+      }
     }
   };
 
@@ -101,7 +147,10 @@ export default function BalancePage() {
             </select>
           </div>
           <div className="flex flex-wrap gap-3">
-            <button className="flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-black shadow-emerald-500/30">
+            <button
+              className="flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-black shadow-emerald-500/30"
+              onClick={handleTopUp}
+            >
               <Wallet2 className="size-4" />
               Пополнить
             </button>
