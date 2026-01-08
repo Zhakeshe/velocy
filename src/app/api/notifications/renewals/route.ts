@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 
 import { db, ensureMigrations } from "@/lib/db/client";
 import { userServices, users } from "@/lib/db/schema";
+import { buildServiceExpiryEmail } from "@/lib/server/email-templates";
 import { sendEmail } from "@/lib/server/email";
 
 export async function POST(request: Request) {
@@ -34,7 +35,11 @@ export async function POST(request: Request) {
         sendEmail({
           to: row.email,
           subject: "Скоро завершится срок услуги",
-          html: `<p>Срок услуги <strong>${row.serviceName}</strong> заканчивается ${row.nextInvoice}.</p>`,
+          html: buildServiceExpiryEmail({
+            title: "Скоро завершится срок услуги",
+            serviceName: row.serviceName,
+            nextInvoice: row.nextInvoice,
+          }),
         }),
       ),
     );

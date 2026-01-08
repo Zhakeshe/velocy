@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { buildVpsActivatedEmail } from "@/lib/server/email-templates";
 import { createUserService, fetchUserByEmail } from "@/lib/server/database";
 import { sendEmail } from "@/lib/server/email";
 
@@ -18,7 +19,11 @@ export async function POST(request: Request) {
       await sendEmail({
         to: email,
         subject: "Заказ VPS оформлен",
-        html: `<p>Ваш VPS активирован: <strong>${service.name}</strong>.</p><p>Следующий платеж: ${service.nextInvoice}</p>`,
+        html: buildVpsActivatedEmail({
+          title: "VPS активирован",
+          serviceName: service.name,
+          nextInvoice: service.nextInvoice,
+        }),
       });
     }
     return NextResponse.json({ service }, { status: 201 });

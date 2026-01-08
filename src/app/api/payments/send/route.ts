@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { buildInvoiceEmail } from "@/lib/server/email-templates";
 import { sendEmail } from "@/lib/server/email";
 
 const SEND_API_URL = "https://pay.crypt.bot/api/createInvoice";
@@ -47,7 +48,12 @@ export async function POST(request: Request) {
     await sendEmail({
       to: email,
       subject: "Счет на пополнение",
-      html: `<p>Счет на оплату ${amount} ${currency} создан. Перейдите по ссылке для оплаты.</p>`,
+      html: buildInvoiceEmail({
+        title: "Счет на пополнение",
+        amount,
+        currency,
+        note: "Счет доступен для оплаты в личном кабинете.",
+      }),
     });
   }
 

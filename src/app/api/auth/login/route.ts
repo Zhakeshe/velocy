@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { buildCodeEmail } from "@/lib/server/email-templates";
 import { createAuthCode, verifyLogin } from "@/lib/server/database";
 import { sendEmail } from "@/lib/server/email";
 
@@ -15,20 +16,28 @@ export async function POST(request: Request) {
 
     if (!result.emailVerified) {
       const code = await createAuthCode({ email, purpose: "email_verify" });
+      const subject = "Подтверждение email";
       await sendEmail({
         to: email,
-        subject: "Подтверждение email",
-        html: `<p>Ваш код подтверждения: <strong>${code}</strong></p>`,
+        subject,
+        html: buildCodeEmail({
+          title: "Подтверждение email",
+          code,
+        }),
       });
       return NextResponse.json({ verificationRequired: true, email });
     }
 
     if (result.twoFactorEnabled) {
       const code = await createAuthCode({ email, purpose: "two_factor" });
+      const subject = "Код входа";
       await sendEmail({
         to: email,
-        subject: "Код входа",
-        html: `<p>Ваш код для входа: <strong>${code}</strong></p>`,
+        subject,
+        html: buildCodeEmail({
+          title: "Код входа",
+          code,
+        }),
       });
       return NextResponse.json({ twoFactorRequired: true, email });
     }

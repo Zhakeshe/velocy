@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { buildTopupReceiptEmail } from "@/lib/server/email-templates";
 import { sendEmail } from "@/lib/server/email";
 
 export async function POST(request: Request) {
@@ -13,7 +14,12 @@ export async function POST(request: Request) {
     await sendEmail({
       to: email,
       subject: "Чек на пополнение",
-      html: `<p>Пополнение на сумму <strong>${amount} ${currency}</strong> оформлено.</p><p>Способ оплаты: ${method}.</p>`,
+      html: buildTopupReceiptEmail({
+        title: "Чек на пополнение",
+        amount,
+        currency,
+        method,
+      }),
     });
 
     return NextResponse.json({ ok: true });
