@@ -11,6 +11,8 @@ export const users = sqliteTable("users", {
   notifyBrowser: integer("notify_browser").notNull().default(0),
   twoFactorEnabled: integer("two_factor_enabled").notNull().default(0),
   emailVerified: integer("email_verified").notNull().default(0),
+  isAdmin: integer("is_admin").notNull().default(0),
+  isBanned: integer("is_banned").notNull().default(0),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 

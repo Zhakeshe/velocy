@@ -1,0 +1,2 @@
+ALTER TABLE users ADD COLUMN is_admin integer NOT NULL DEFAULT 0;
+ALTER TABLE users ADD COLUMN is_banned integer NOT NULL DEFAULT 0;

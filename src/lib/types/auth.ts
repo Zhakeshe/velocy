@@ -23,5 +23,7 @@ export type AuthUser = {
   notifyBrowser: boolean;
   twoFactorEnabled: boolean;
   emailVerified: boolean;
+  isAdmin: boolean;
+  isBanned: boolean;
   services: UserService[];
 };

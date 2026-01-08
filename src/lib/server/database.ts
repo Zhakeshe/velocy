@@ -33,6 +33,8 @@ function toAuthUser(userRow: typeof users.$inferSelect, services: UserService[] 
     notifyBrowser: Boolean(userRow.notifyBrowser),
     twoFactorEnabled: Boolean(userRow.twoFactorEnabled),
     emailVerified: Boolean(userRow.emailVerified),
+    isAdmin: Boolean(userRow.isAdmin),
+    isBanned: Boolean(userRow.isBanned),
     services,
   };
 }
@@ -87,7 +89,7 @@ export async function registerUser(payload: { name: string; email: string; passw
   const passwordHash = await bcrypt.hash(password, 10);
   const [created] = await db
     .insert(users)
-    .values({ name, email, passwordHash, emailVerified: 0 })
+    .values({ name, email, passwordHash, emailVerified: 0, isAdmin: 0, isBanned: 0 })
     .returning();
 
   const services = await db
@@ -123,6 +125,8 @@ export async function upsertOAuthUser(payload: { provider: string; providerId: s
       email,
       passwordHash: placeholderPassword,
       emailVerified: 1,
+      isAdmin: 0,
+      isBanned: 0,
     })
     .returning();
 
@@ -141,6 +145,10 @@ export async function verifyLogin(email: string, password: string) {
     throw new Error("Неверный пароль");
   }
 
+  if (existing.isBanned) {
+    throw new Error("Доступ к аккаунту ограничен");
+  }
+
   const services = await db
     .select()
     .from(userServices)
@@ -153,6 +161,16 @@ export async function verifyLogin(email: string, password: string) {
 export async function markEmailVerified(email: string) {
   await ensureMigrations();
   await db.update(users).set({ emailVerified: 1 }).where(eq(users.email, email));
+}
+
+export async function listUsers() {
+  await ensureMigrations();
+  return db.select().from(users).orderBy(desc(users.createdAt));
+}
+
+export async function setUserBanned(payload: { email: string; isBanned: boolean }) {
+  await ensureMigrations();
+  await db.update(users).set({ isBanned: payload.isBanned ? 1 : 0 }).where(eq(users.email, payload.email));
 }
 
 export async function createAuthCode(payload: { email: string; purpose: string; ttlMinutes?: number }) {
