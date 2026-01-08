@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { createUserService } from "@/lib/server/database";
+import { buildVpsActivatedEmail } from "@/lib/server/email-templates";
+import { createUserService, fetchUserByEmail } from "@/lib/server/database";
+import { sendEmail } from "@/lib/server/email";
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -12,6 +14,18 @@ export async function POST(request: Request) {
 
   try {
     const service = await createUserService({ email, catalogId, region, billing, os, panel });
+    const user = await fetchUserByEmail(email);
+    if (user?.notifyEmail) {
+      await sendEmail({
+        to: email,
+        subject: "Заказ VPS оформлен",
+        html: buildVpsActivatedEmail({
+          title: "VPS активирован",
+          serviceName: service.name,
+          nextInvoice: service.nextInvoice,
+        }),
+      });
+    }
     return NextResponse.json({ service }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Не удалось оформить заказ";
