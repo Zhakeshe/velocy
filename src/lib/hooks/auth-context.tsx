@@ -7,8 +7,10 @@ import type { AuthUser } from "@/lib/types/auth";
 type AuthContextValue = {
   user: AuthUser | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (payload: { name: string; email: string; password: string }) => Promise<void>;
+  login: (email: string, password: string) => Promise<AuthActionResult>;
+  register: (payload: { name: string; email: string; password: string }) => Promise<AuthActionResult>;
+  verifyEmail: (payload: { email: string; code: string }) => Promise<AuthActionResult>;
+  verifyTwoFactor: (payload: { email: string; code: string }) => Promise<AuthActionResult>;
   logout: () => void;
   refreshUser: () => Promise<void>;
   updateProfile: (payload: {
@@ -35,6 +37,11 @@ async function fetchUser(email: string): Promise<AuthUser | null> {
   const data = await res.json();
   return data.user as AuthUser;
 }
+
+type AuthActionResult =
+  | { status: "ok"; user: AuthUser }
+  | { status: "verification"; email: string }
+  | { status: "twoFactor"; email: string };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -96,12 +103,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error(data?.error ?? "Не удалось войти");
       }
 
-      setUser(data.user as AuthUser);
+      if (data?.verificationRequired) {
+        return { status: "verification", email: data.email ?? email } satisfies AuthActionResult;
+      }
+
+      if (data?.twoFactorRequired) {
+        return { status: "twoFactor", email: data.email ?? email } satisfies AuthActionResult;
+      }
+
+      const nextUser = data.user as AuthUser;
+      setUser(nextUser);
 
       if (typeof window !== "undefined") {
         window.localStorage.setItem(STORAGE_KEYS.sessionEmail, email);
-        window.localStorage.setItem(STORAGE_KEYS.sessionUser, JSON.stringify(data.user));
+        window.localStorage.setItem(STORAGE_KEYS.sessionUser, JSON.stringify(nextUser));
       }
+
+      return { status: "ok", user: nextUser };
     },
     [],
   );
@@ -119,15 +137,66 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error(data?.error ?? "Не удалось зарегистрироваться");
       }
 
-      setUser(data.user as AuthUser);
+      if (data?.verificationRequired) {
+        return { status: "verification", email: data.email ?? email } satisfies AuthActionResult;
+      }
+
+      const nextUser = data.user as AuthUser;
+      setUser(nextUser);
 
       if (typeof window !== "undefined") {
         window.localStorage.setItem(STORAGE_KEYS.sessionEmail, email);
-        window.localStorage.setItem(STORAGE_KEYS.sessionUser, JSON.stringify(data.user));
+        window.localStorage.setItem(STORAGE_KEYS.sessionUser, JSON.stringify(nextUser));
       }
+
+      return { status: "ok", user: nextUser };
     },
     [],
   );
+
+  const verifyEmail = useCallback(async ({ email, code }: { email: string; code: string }) => {
+    const res = await fetch("/api/auth/verify-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, code }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data?.error ?? "Не удалось подтвердить email");
+    }
+
+    const nextUser = data.user as AuthUser;
+    setUser(nextUser);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(STORAGE_KEYS.sessionEmail, nextUser.email);
+      window.localStorage.setItem(STORAGE_KEYS.sessionUser, JSON.stringify(nextUser));
+    }
+
+    return { status: "ok", user: nextUser } satisfies AuthActionResult;
+  }, []);
+
+  const verifyTwoFactor = useCallback(async ({ email, code }: { email: string; code: string }) => {
+    const res = await fetch("/api/auth/verify-2fa", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, code }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data?.error ?? "Не удалось подтвердить вход");
+    }
+
+    const nextUser = data.user as AuthUser;
+    setUser(nextUser);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(STORAGE_KEYS.sessionEmail, nextUser.email);
+      window.localStorage.setItem(STORAGE_KEYS.sessionUser, JSON.stringify(nextUser));
+    }
+
+    return { status: "ok", user: nextUser } satisfies AuthActionResult;
+  }, []);
 
   const refreshUser = useCallback(async () => {
     const sessionEmail =
@@ -179,8 +248,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ user, isLoading, login, register, logout, refreshUser, updateProfile }),
-    [isLoading, login, logout, refreshUser, register, updateProfile, user],
+    () => ({ user, isLoading, login, register, verifyEmail, verifyTwoFactor, logout, refreshUser, updateProfile }),
+    [isLoading, login, logout, refreshUser, register, updateProfile, user, verifyEmail, verifyTwoFactor],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

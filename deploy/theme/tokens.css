@@ -1,0 +1,17 @@
+:root {
+  --ve-bg: #050505;
+  --ve-card: rgba(255, 255, 255, 0.04);
+  --ve-border: rgba(255, 255, 255, 0.12);
+  --ve-text: #f8fafc;
+  --ve-muted: rgba(255, 255, 255, 0.6);
+  --ve-primary: #3b82f6;
+  --ve-primary-soft: rgba(59, 130, 246, 0.2);
+  --ve-success: #10b981;
+  --ve-radius: 16px;
+  --ve-shadow: 0 20px 80px rgba(0, 0, 0, 0.35);
+  --ve-font: "Inter", "Segoe UI", system-ui, sans-serif;
+}
+
+body {
+  font-family: var(--ve-font);
+}

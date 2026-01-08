@@ -1,5 +1,6 @@
 export type UserService = {
   id: string;
+  orderId?: string;
   catalogId?: string;
   name: string;
   area: string;
@@ -22,5 +23,8 @@ export type AuthUser = {
   notifyEmail: boolean;
   notifyBrowser: boolean;
   twoFactorEnabled: boolean;
+  emailVerified: boolean;
+  isAdmin: boolean;
+  isBanned: boolean;
   services: UserService[];
 };

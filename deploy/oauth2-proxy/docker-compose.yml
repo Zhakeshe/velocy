@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  oauth2-proxy-web:
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
+    restart: unless-stopped
+    env_file: .env
+    command:
+      - --config=/etc/oauth2-proxy/web.cfg
+    volumes:
+      - ./web.cfg:/etc/oauth2-proxy/web.cfg:ro
+    ports:
+      - "4180:4180"
+
+  oauth2-proxy-game:
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
+    restart: unless-stopped
+    env_file: .env
+    command:
+      - --config=/etc/oauth2-proxy/game.cfg
+    volumes:
+      - ./game.cfg:/etc/oauth2-proxy/game.cfg:ro
+    ports:
+      - "4181:4180"
+
+  oauth2-proxy-vps:
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
+    restart: unless-stopped
+    env_file: .env
+    command:
+      - --config=/etc/oauth2-proxy/vps.cfg
+    volumes:
+      - ./vps.cfg:/etc/oauth2-proxy/vps.cfg:ro
+    ports:
+      - "4182:4180"
