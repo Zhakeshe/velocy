@@ -1,10 +1,19 @@
 import crypto from "crypto";
 
 import bcrypt from "bcrypt";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, lte } from "drizzle-orm";
 
 import { db, ensureMigrations } from "@/lib/db/client";
-import { authCodes, catalogItems, userServices, users } from "@/lib/db/schema";
+import {
+  authCodes,
+  catalogItems,
+  orders,
+  panelAccounts,
+  panelResources,
+  provisioningJobs,
+  userServices,
+  users,
+} from "@/lib/db/schema";
 import type { AuthUser, UserService } from "@/lib/types/auth";
 
 function withId(prefix: string) {
@@ -22,6 +31,24 @@ function generateHostname(name: string) {
     .replace(/^-+|-+$/g, "")
     .slice(0, 12);
   return `${base || "vps"}.${crypto.randomUUID().slice(0, 6)}.kz`;
+}
+
+const panelUrlsByType: Record<string, string> = {
+  web: "https://panelweb.velocy.cloud",
+  game: "https://panelgame.velocy.cloud",
+  vps: "https://panelvps.velocy.cloud",
+};
+
+export function resolvePanelUrl(productType: string) {
+  return panelUrlsByType[productType] ?? "https://panel.velocy.cloud";
+}
+
+function deriveProductType(category: string) {
+  const value = category.toLowerCase();
+  if (value.includes("web") || value.includes("hosting") || value.includes("хост")) return "web";
+  if (value.includes("game") || value.includes("игр")) return "game";
+  if (value.includes("vps") || value.includes("vds")) return "vps";
+  return "vps";
 }
 
 function toAuthUser(userRow: typeof users.$inferSelect, services: UserService[] = []): AuthUser {
@@ -42,6 +69,7 @@ function toAuthUser(userRow: typeof users.$inferSelect, services: UserService[] 
 function toUserServices(rows: typeof userServices.$inferSelect[]): UserService[] {
   return rows.map((row) => ({
     id: row.id,
+    orderId: row.orderId || undefined,
     catalogId: row.catalogId === "custom" ? undefined : row.catalogId,
     name: row.name,
     area: row.area,
@@ -61,6 +89,12 @@ function toUserServices(rows: typeof userServices.$inferSelect[]): UserService[]
 export async function fetchUserByEmail(email: string) {
   await ensureMigrations();
   const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  return user ?? null;
+}
+
+export async function fetchUserById(id: number) {
+  await ensureMigrations();
+  const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1);
   return user ?? null;
 }
 
@@ -266,6 +300,8 @@ export async function createUserService(payload: {
   billing?: string;
   os?: string;
   panel?: string;
+  orderId?: string;
+  skipBalance?: boolean;
 }) {
   await ensureMigrations();
   const [user] = await db.select().from(users).where(eq(users.email, payload.email)).limit(1);
@@ -278,7 +314,7 @@ export async function createUserService(payload: {
     throw new Error("Тариф не найден");
   }
 
-  if (user.balance < item.price) {
+  if (!payload.skipBalance && user.balance < item.price) {
     throw new Error("Недостаточно средств на балансе");
   }
 
@@ -290,6 +326,7 @@ export async function createUserService(payload: {
     .values({
       id: withId("svc"),
       userId: user.id,
+      orderId: payload.orderId ?? "",
       catalogId: item.id,
       name: item.name,
       area: payload.region || item.region,
@@ -301,13 +338,205 @@ export async function createUserService(payload: {
       hostname: generateHostname(item.name),
       ip: generateIp(),
       ptr: `${item.owner.toLowerCase().replace(/\s+/g, "-")}.${item.region.toLowerCase()}.velocy.cloud`,
-      panelUrl: `https://panel.velocy.cloud/${crypto.randomUUID().slice(0, 6)}`,
+      panelUrl: resolvePanelUrl(deriveProductType(item.category)),
     })
     .returning();
 
-  await db.update(users).set({ balance: user.balance - item.price }).where(eq(users.id, user.id));
+  if (!payload.skipBalance) {
+    await db.update(users).set({ balance: user.balance - item.price }).where(eq(users.id, user.id));
+  }
 
   return toUserServices([service])[0];
+}
+
+export async function createOrder(payload: {
+  email: string;
+  catalogId: string;
+  status?: "pending" | "active" | "failed";
+  metadata?: Record<string, unknown>;
+}) {
+  await ensureMigrations();
+  const [user] = await db.select().from(users).where(eq(users.email, payload.email)).limit(1);
+  if (!user) {
+    throw new Error("Пользователь не найден");
+  }
+
+  const item = await getCatalogItem(payload.catalogId);
+  if (!item) {
+    throw new Error("Тариф не найден");
+  }
+
+  const productType = deriveProductType(item.category);
+  const [order] = await db
+    .insert(orders)
+    .values({
+      id: withId("ord"),
+      userId: user.id,
+      catalogId: item.id,
+      productType,
+      status: payload.status ?? "pending",
+      panelUrl: resolvePanelUrl(productType),
+      metadata: JSON.stringify(payload.metadata ?? {}),
+    })
+    .returning();
+
+  return order;
+}
+
+export async function activateOrder(payload: { orderId: string; createService?: boolean; skipBalance?: boolean }) {
+  await ensureMigrations();
+  const [order] = await db.select().from(orders).where(eq(orders.id, payload.orderId)).limit(1);
+  if (!order) {
+    throw new Error("Заказ не найден");
+  }
+
+  const activatedAt = new Date().toISOString();
+  await db
+    .update(orders)
+    .set({ status: "active", activatedAt, panelUrl: resolvePanelUrl(order.productType) })
+    .where(eq(orders.id, order.id));
+
+  let service: UserService | null = null;
+  if (payload.createService) {
+    const [user] = await db.select().from(users).where(eq(users.id, order.userId)).limit(1);
+    if (!user) {
+      throw new Error("Пользователь не найден");
+    }
+
+    const [existing] = await db
+      .select()
+      .from(userServices)
+      .where(eq(userServices.orderId, order.id))
+      .limit(1);
+
+    if (existing) {
+      service = toUserServices([existing])[0];
+    } else {
+      service = await createUserService({
+        email: user.email,
+        catalogId: order.catalogId,
+        orderId: order.id,
+        skipBalance: payload.skipBalance ?? true,
+      });
+    }
+  }
+
+  return { order, service };
+}
+
+export async function fetchOrderById(orderId: string) {
+  await ensureMigrations();
+  const [order] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+  return order ?? null;
+}
+
+export async function fetchActiveOrdersForUser(email: string) {
+  await ensureMigrations();
+  const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  if (!user) {
+    throw new Error("Пользователь не найден");
+  }
+  return db.select().from(orders).where(and(eq(orders.userId, user.id), eq(orders.status, "active")));
+}
+
+export async function fetchActiveOrderForService(payload: { email: string; serviceId: string }) {
+  await ensureMigrations();
+  const [user] = await db.select().from(users).where(eq(users.email, payload.email)).limit(1);
+  if (!user) {
+    throw new Error("Пользователь не найден");
+  }
+  const [service] = await db
+    .select()
+    .from(userServices)
+    .where(and(eq(userServices.id, payload.serviceId), eq(userServices.userId, user.id)))
+    .limit(1);
+  if (!service || !service.orderId) return null;
+  const [order] = await db
+    .select()
+    .from(orders)
+    .where(and(eq(orders.id, service.orderId), eq(orders.status, "active")))
+    .limit(1);
+  return order ?? null;
+}
+
+export async function fetchPanelAccount(payload: { userId: number; panel: string }) {
+  await ensureMigrations();
+  const [account] = await db
+    .select()
+    .from(panelAccounts)
+    .where(and(eq(panelAccounts.userId, payload.userId), eq(panelAccounts.panel, payload.panel)))
+    .limit(1);
+  return account ?? null;
+}
+
+export async function createPanelAccount(payload: { userId: number; panel: string; externalId: string }) {
+  await ensureMigrations();
+  const [account] = await db
+    .insert(panelAccounts)
+    .values({ id: withId("pacc"), userId: payload.userId, panel: payload.panel, externalId: payload.externalId })
+    .returning();
+  return account;
+}
+
+export async function createPanelResource(payload: { orderId: string; panel: string; externalId: string }) {
+  await ensureMigrations();
+  const [resource] = await db
+    .insert(panelResources)
+    .values({ id: withId("pres"), orderId: payload.orderId, panel: payload.panel, externalId: payload.externalId })
+    .returning();
+  return resource;
+}
+
+export async function enqueueProvisioningJob(orderId: string) {
+  await ensureMigrations();
+  const [job] = await db
+    .insert(provisioningJobs)
+    .values({ id: withId("job"), orderId, status: "pending", attempts: 0 })
+    .returning();
+  return job;
+}
+
+export async function claimProvisioningJob() {
+  await ensureMigrations();
+  const now = new Date().toISOString();
+  const [job] = await db
+    .select()
+    .from(provisioningJobs)
+    .where(and(eq(provisioningJobs.status, "pending"), lte(provisioningJobs.nextRunAt, now)))
+    .orderBy(desc(provisioningJobs.createdAt))
+    .limit(1);
+
+  if (!job) return null;
+
+  const [updated] = await db
+    .update(provisioningJobs)
+    .set({ status: "running", attempts: job.attempts + 1, updatedAt: now })
+    .where(eq(provisioningJobs.id, job.id))
+    .returning();
+
+  return updated ?? job;
+}
+
+export async function completeProvisioningJob(jobId: string) {
+  await ensureMigrations();
+  const now = new Date().toISOString();
+  await db.update(provisioningJobs).set({ status: "done", updatedAt: now }).where(eq(provisioningJobs.id, jobId));
+}
+
+export async function failProvisioningJob(payload: { jobId: string; error: string; retryDelaySeconds?: number }) {
+  await ensureMigrations();
+  const now = new Date();
+  const delay = payload.retryDelaySeconds ?? 60;
+  const nextRunAt = new Date(now.getTime() + delay * 1000).toISOString();
+  await db
+    .update(provisioningJobs)
+    .set({
+      status: "failed",
+      lastError: payload.error,
+      nextRunAt,
+      updatedAt: now.toISOString(),
+    })
+    .where(eq(provisioningJobs.id, payload.jobId));
 }
 
 export async function updateAccountSettings(payload: {

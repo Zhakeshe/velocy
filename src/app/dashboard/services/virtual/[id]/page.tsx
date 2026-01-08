@@ -20,8 +20,35 @@ export default function VirtualServiceDetailPage() {
   const { user } = useAuth();
   const { t } = useLocale();
   const router = useRouter();
+  const [panelError, setPanelError] = React.useState<string | null>(null);
+  const [panelLoading, setPanelLoading] = React.useState(false);
 
   const service = useMemo(() => user?.services.find((entry) => entry.id === id), [id, user?.services]);
+
+  const handleOpenPanel = async () => {
+    if (!user) return;
+    setPanelLoading(true);
+    setPanelError(null);
+    try {
+      const res = await fetch("/api/panel-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user.email, serviceId: service?.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || "Панель недоступна");
+      }
+      if (data?.url) {
+        window.location.href = data.url as string;
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Панель недоступна";
+      setPanelError(message);
+    } finally {
+      setPanelLoading(false);
+    }
+  };
 
   if (!service) {
     return (
@@ -84,10 +111,15 @@ export default function VirtualServiceDetailPage() {
             </div>
 
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-              <ActionButton icon={<Server className="size-4" />} label="Панель управления" href={service.panelUrl || "#"} />
+              <ActionButton
+                icon={<Server className="size-4" />}
+                label={panelLoading ? "Открываем..." : "Панель управления"}
+                onClick={handleOpenPanel}
+              />
               <ActionButton icon={<Clock className="size-4" />} label="Продлить" href="/dashboard/balance" />
               <ActionButton icon={<Globe2 className="size-4" />} label="Настроить PTR" href="#" />
             </div>
+            {panelError ? <p className="text-xs text-red-300">{panelError}</p> : null}
           </div>
 
           <div className="space-y-4 rounded-3xl border border-white/10 bg-black/60 p-5 shadow-[0_25px_100px_rgba(0,0,0,0.45)]">
@@ -131,12 +163,34 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ActionButton({ label, href, icon }: { label: string; href: string; icon: React.ReactNode }) {
+function ActionButton({
+  label,
+  href,
+  icon,
+  onClick,
+}: {
+  label: string;
+  href?: string;
+  icon: React.ReactNode;
+  onClick?: () => void;
+}) {
+  const className =
+    "flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/30";
+
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className={className}>
+        <span className="inline-flex items-center gap-2">
+          {icon}
+          {label}
+        </span>
+        <ArrowRight className="size-4 text-white/60" />
+      </button>
+    );
+  }
+
   return (
-    <Link
-      href={href}
-      className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/30"
-    >
+    <Link href={href ?? "#"} className={className}>
       <span className="inline-flex items-center gap-2">
         {icon}
         {label}

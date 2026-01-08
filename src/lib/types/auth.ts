@@ -1,5 +1,6 @@
 export type UserService = {
   id: string;
+  orderId?: string;
   catalogId?: string;
   name: string;
   area: string;

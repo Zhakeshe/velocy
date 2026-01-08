@@ -1,0 +1,15 @@
+@import "/velocy-theme/tokens.css";
+
+body {
+  font-family: var(--ve-font) !important;
+}
+
+.x-body, .x-panel {
+  background: var(--ve-bg) !important;
+  color: var(--ve-text) !important;
+}
+
+.x-panel-body, .x-grid-item {
+  background: var(--ve-card) !important;
+  border-color: var(--ve-border) !important;
+}

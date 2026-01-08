@@ -1,0 +1,28 @@
+@import "/velocy-theme/tokens.css";
+
+:root {
+  --primary: var(--ve-primary);
+  --secondary: var(--ve-card);
+}
+
+body {
+  background: var(--ve-bg);
+  color: var(--ve-text);
+}
+
+.navbar, .bg-gray-800, .bg-gray-900 {
+  background-color: var(--ve-bg) !important;
+}
+
+.card, .bg-gray-700 {
+  background-color: var(--ve-card) !important;
+  border: 1px solid var(--ve-border) !important;
+  border-radius: var(--ve-radius) !important;
+  box-shadow: var(--ve-shadow) !important;
+}
+
+.btn-primary {
+  background: var(--ve-primary) !important;
+  border-color: var(--ve-primary) !important;
+  color: #020203 !important;
+}

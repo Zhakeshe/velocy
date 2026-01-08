@@ -129,6 +129,11 @@ export default function AuthInner() {
     window.location.href = `/api/auth/${provider}`;
   };
 
+  const handleOidcRedirect = () => {
+    if (typeof window === "undefined") return;
+    window.location.href = "/api/auth/oidc";
+  };
+
   useEffect(() => {
     if (!isLoading && user) {
       router.replace("/dashboard");
@@ -294,6 +299,13 @@ export default function AuthInner() {
 
             {authStep === "login" || authStep === "register" ? (
               <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={handleOidcRedirect}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-white/10 border border-white/15 hover:border-white/40"
+                >
+                  Войти через SSO Velocy
+                </button>
                 <button
                   type="button"
                   onClick={() => handleOAuthRedirect("telegram")}

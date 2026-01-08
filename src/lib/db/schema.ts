@@ -46,6 +46,7 @@ export const userServices = sqliteTable("user_services", {
   userId: integer("user_id")
     .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
+  orderId: text("order_id").notNull().default(""),
   catalogId: text("catalog_id").notNull().default("custom"),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   name: text("name").notNull(),
@@ -60,4 +61,51 @@ export const userServices = sqliteTable("user_services", {
   ptr: text("ptr").notNull().default(""),
   panelUrl: text("panel_url").notNull().default(""),
   activatedAt: text("activated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const orders = sqliteTable("orders", {
+  id: text("id").primaryKey(),
+  userId: integer("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  catalogId: text("catalog_id").notNull(),
+  productType: text("product_type").notNull(),
+  status: text("status").notNull(),
+  panelUrl: text("panel_url").notNull().default(""),
+  metadata: text("metadata").notNull().default("{}"),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  activatedAt: text("activated_at"),
+});
+
+export const panelAccounts = sqliteTable("panel_accounts", {
+  id: text("id").primaryKey(),
+  userId: integer("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  panel: text("panel").notNull(),
+  externalId: text("external_id").notNull(),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const panelResources = sqliteTable("panel_resources", {
+  id: text("id").primaryKey(),
+  orderId: text("order_id")
+    .references(() => orders.id, { onDelete: "cascade" })
+    .notNull(),
+  panel: text("panel").notNull(),
+  externalId: text("external_id").notNull(),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const provisioningJobs = sqliteTable("provisioning_jobs", {
+  id: text("id").primaryKey(),
+  orderId: text("order_id")
+    .references(() => orders.id, { onDelete: "cascade" })
+    .notNull(),
+  status: text("status").notNull(),
+  attempts: integer("attempts").notNull().default(0),
+  lastError: text("last_error").notNull().default(""),
+  nextRunAt: text("next_run_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });

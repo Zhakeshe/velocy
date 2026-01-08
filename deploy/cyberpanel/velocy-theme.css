@@ -1,0 +1,20 @@
+@import url('/velocy-theme/tokens.css');
+
+body {
+  background: var(--ve-bg) !important;
+  color: var(--ve-text) !important;
+  font-family: var(--ve-font) !important;
+}
+
+.card, .panel, .container-fluid .row > div {
+  background: var(--ve-card) !important;
+  border: 1px solid var(--ve-border) !important;
+  border-radius: var(--ve-radius) !important;
+  box-shadow: var(--ve-shadow) !important;
+}
+
+.btn-primary, .btn-success {
+  background: var(--ve-primary) !important;
+  border-color: var(--ve-primary) !important;
+  color: #020203 !important;
+}

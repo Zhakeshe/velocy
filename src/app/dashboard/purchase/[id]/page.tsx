@@ -98,6 +98,20 @@ export default function PurchaseDetailPage() {
         throw new Error(data?.error || "Не удалось оформить");
       }
       await refreshUser();
+      if (data?.order?.id) {
+        const panelRes = await fetch("/api/panel-link", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: user.email, orderId: data.order.id }),
+        });
+        if (panelRes.ok) {
+          const panelData = await panelRes.json();
+          if (panelData?.url) {
+            window.location.href = panelData.url as string;
+            return;
+          }
+        }
+      }
       router.push("/dashboard/services/virtual");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Не удалось оформить";

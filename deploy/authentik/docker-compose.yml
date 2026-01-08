@@ -1,0 +1,64 @@
+version: "3.9"
+
+services:
+  postgresql:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: "authentik"
+      POSTGRES_USER: "authentik"
+      POSTGRES_DB: "authentik"
+    volumes:
+      - authentik-postgres:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - authentik-redis:/data
+
+  server:
+    image: ghcr.io/goauthentik/server:2024.8.4
+    restart: unless-stopped
+    command: server
+    environment:
+      AUTHENTIK_SECRET_KEY: "change-me"
+      AUTHENTIK_POSTGRESQL__HOST: postgresql
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: authentik
+      AUTHENTIK_REDIS__HOST: redis
+    ports:
+      - "9000:9000"
+      - "9443:9443"
+    depends_on:
+      - postgresql
+      - redis
+    volumes:
+      - authentik-media:/media
+      - authentik-custom-templates:/templates
+
+  worker:
+    image: ghcr.io/goauthentik/server:2024.8.4
+    restart: unless-stopped
+    command: worker
+    environment:
+      AUTHENTIK_SECRET_KEY: "change-me"
+      AUTHENTIK_POSTGRESQL__HOST: postgresql
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: authentik
+      AUTHENTIK_REDIS__HOST: redis
+    depends_on:
+      - postgresql
+      - redis
+    volumes:
+      - authentik-media:/media
+      - authentik-custom-templates:/templates
+
+volumes:
+  authentik-postgres:
+  authentik-redis:
+  authentik-media:
+  authentik-custom-templates:
